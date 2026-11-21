@@ -106,7 +106,7 @@ class Settings:
     primary_model: str = field(
         default_factory=lambda: os.getenv("PRIORART_PRIMARY_MODEL")
         or os.getenv("NEBIUS_MODEL")
-        or "meta-llama/Llama-3.3-70B-Instruct"
+        or "deepseek-ai/DeepSeek-V4.1-Flash-1017"
     )
     verifier_model: str = field(
         default_factory=lambda: os.getenv("PRIORART_VERIFIER_MODEL", "Qwen/Qwen3-235B-A22B-Instruct-2507")
@@ -252,7 +252,7 @@ class Settings:
             tavily_api_key=os.getenv("TAVILY_API_KEY", ""),
             primary_model=os.getenv("PRIORART_PRIMARY_MODEL")
             or os.getenv("NEBIUS_MODEL")
-            or "meta-llama/Llama-3.3-70B-Instruct",
+            or "deepseek-ai/DeepSeek-V4.1-Flash-1017",
             verifier_model=os.getenv("PRIORART_VERIFIER_MODEL", "Qwen/Qwen3-235B-A22B-Instruct-2507"),
             max_candidates=safe_int("PRIORART_MAX_CANDIDATES", 8),
             results_per_query=safe_int("PRIORART_RESULTS_PER_QUERY", 5),

@@ -16,17 +16,17 @@ from .config import ROOT, ConfigError, Settings
 from .log import scrub_text
 
 RECOMMENDED_WRITER_MODELS: tuple[str, ...] = (
-    "meta-llama/Llama-3.3-70B-Instruct",
-    "meta-llama/Meta-Llama-3.1-70B-Instruct",
-    "deepseek-ai/DeepSeek-V3",
-    "mistralai/Mistral-Large-Instruct-2411",
+    "deepseek-ai/DeepSeek-V4.1-Flash-1017",
+    "deepseek-ai/DeepSeek-V4-Pro-0813",
+    "openai/gpt-oss-120b",
+    "moonshotai/Kimi-K3.1-Pro",
 )
 
 RECOMMENDED_VERIFIER_MODELS: tuple[str, ...] = (
     "Qwen/Qwen3-235B-A22B-Instruct-2507",
-    "Qwen/Qwen2.5-72B-Instruct",
-    "deepseek-ai/DeepSeek-R1",
-    "meta-llama/Llama-3.3-70B-Instruct",
+    "Qwen/Qwen3-30B-A3B-Instruct-2507",
+    "zai-org/GLM-5.3",
+    "NousResearch/Hermes-4-405B",
 )
 
 BASE_ALLOWED_HOSTS: frozenset[str] = frozenset({"127.0.0.1", "localhost", "[::1]", "testserver"})
@@ -478,7 +478,7 @@ def verify_connections(
             nebius_api_key=nebius_api_key.strip(),
             nebius_base_url=base_url,
             tavily_api_key="placeholder",
-            primary_model=primary_model or "meta-llama/Llama-3.3-70B-Instruct",
+            primary_model=primary_model or "deepseek-ai/DeepSeek-V4.1-Flash-1017",
             verifier_model=verifier_model or "Qwen/Qwen3-235B-A22B-Instruct-2507",
             cache_enabled=False,
         )

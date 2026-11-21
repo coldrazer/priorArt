@@ -221,7 +221,7 @@ Runs as a non-root container (`priorart`), auto-applies SQLite migrations at sta
 <!-- AUTO:services -->
 | Requirement | How we use it |
 |---|---|
-| **Nebius Token Factory** (inference) | Two models from distinct families via the OpenAI-compatible API (`https://api.tokenfactory.nebius.com/v1/`). **Writer** (`meta-llama/Llama-3.3-70B-Instruct` by default): breaks the idea into features, plans queries, triages candidates, compares projects with verbatim quotes, and drafts pivots. **Verifier** (`Qwen/Qwen3-235B-A22B-Instruct-2507` by default): independently checks every overlap claim against its quote. |
+| **Nebius Token Factory** (inference) | Two models from distinct families via the OpenAI-compatible API (`https://api.tokenfactory.nebius.com/v1/`). **Writer** (`deepseek-ai/DeepSeek-V4.1-Flash-1017` by default): breaks the idea into features, plans queries, triages candidates, compares projects with verbatim quotes, and drafts pivots. **Verifier** (`Qwen/Qwen3-235B-A22B-Instruct-2507` by default): independently checks every overlap claim against its quote. |
 | **Tavily** (real-time web search) | `search` (advanced depth, domain-filtered across GitHub, Hacker News, Product Hunt, arXiv, Devpost, and open web) discovers candidates; `extract` fetches full pages with per-URL caching. Every claim retains its source URL as a numbered `[n]` citation across the grid, verdict, pivots, and Markdown report. |
 <!-- /AUTO:services -->
 
