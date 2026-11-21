@@ -33,8 +33,8 @@ from starlette.middleware.gzip import GZipMiddleware
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 from starlette.types import ASGIApp, Receive, Scope, Send
 
-from . import SIMULATE_MODES, VERSION, SharedRuntime, build
-from .config import Settings
+from . import SIMULATE_MODES, VERSION, ConfigError, SharedRuntime, build
+from .config import ROOT, Settings
 from .log import (
     capture_error,
     check_id_var,
@@ -44,6 +44,13 @@ from .log import (
     owner_ref_var,
     propagate_context,
     request_id_var,
+)
+from .onboarding import (
+    apply_setup_update,
+    setup_payload,
+    sync_process_env,
+    verify_connections,
+    write_env_file,
 )
 from .pipeline import clean_idea, normalize_idea_key
 from .report import to_markdown
@@ -120,6 +127,45 @@ class CreateCheckRequest(BaseModel):
         return v
 
 
+class SetupUpdateRequest(BaseModel):
+    nebius_api_key: str | None = None
+    tavily_api_key: str | None = None
+    clear_nebius_key: bool = False
+    clear_tavily_key: bool = False
+    nebius_base_url: str | None = None
+    primary_model: str | None = None
+    verifier_model: str | None = None
+    fake: bool | None = None
+    max_candidates: int | None = None
+    results_per_query: int | None = None
+    page_chars: int | None = None
+    workers: int | None = None
+    search_concurrency: int | None = None
+    model_concurrency: int | None = None
+    check_deadline_s: int | None = None
+    max_concurrent_checks: int | None = None
+    cache_enabled: bool | None = None
+    rate_limit_10m: int | None = None
+    rate_limit_day: int | None = None
+    rate_limit_global_hour: int | None = None
+    daily_budget_credits: int | None = None
+    daily_budget_output_tokens: int | None = None
+    allowed_hosts: str | list[str] | None = None
+    public_origin: str | None = None
+    trust_proxy_headers: bool | None = None
+    db_path: str | None = None
+    cache_path: str | None = None
+    runs_dir: str | None = None
+
+
+class SetupTestRequest(BaseModel):
+    nebius_api_key: str | None = None
+    tavily_api_key: str | None = None
+    nebius_base_url: str | None = None
+    primary_model: str | None = None
+    verifier_model: str | None = None
+
+
 # ---------- active check tracking & server state ----------
 
 @dataclass
@@ -169,10 +215,12 @@ class _ActiveCheck:
 
 
 class ServerState:
-    def __init__(self, settings: Settings):
+    def __init__(self, settings: Settings, *, env_path: Path | None = None):
         self.settings = settings
+        self.env_path = env_path or (ROOT / ".env")
         self.store = ReportStore(settings.db_path)
         self.runtime = SharedRuntime(settings)
+        self._retired_runtimes: list[SharedRuntime] = []
         self.semaphore = threading.BoundedSemaphore(settings.max_concurrent_checks)
         self.checks_lock = threading.Lock()
         self.active_checks: dict[str, _ActiveCheck] = {}
@@ -180,15 +228,37 @@ class ServerState:
         self.csp = compute_csp_header(INDEX_HTML)
         self.store.recover_stale_running()
 
+    def reload_settings(self, new_settings: Settings) -> None:
+        """Hot-reload live server settings without breaking in-flight checks."""
+        new_rt = SharedRuntime(new_settings)
+        old_rt: SharedRuntime | None = None
+        close_now = False
+        with self.checks_lock:
+            has_running = any(not c.done for c in self.active_checks.values())
+            old_rt = self.runtime
+            self.settings = new_settings
+            self.runtime = new_rt
+            if not has_running:
+                self.semaphore = threading.BoundedSemaphore(new_settings.max_concurrent_checks)
+                close_now = True
+            elif old_rt is not None:
+                self._retired_runtimes.append(old_rt)
+        if close_now and old_rt is not None:
+            old_rt.close()
+
     def close(self) -> None:
         self.shutting_down = True
         with self.checks_lock:
             threads = [c.thread for c in self.active_checks.values() if c.thread is not None and c.thread.is_alive()]
+            retired = list(self._retired_runtimes)
+            self._retired_runtimes.clear()
         deadline = time.monotonic() + 10.0
         for th in threads:
             rem = max(0.0, deadline - time.monotonic())
             if rem > 0:
                 th.join(timeout=rem)
+        for rt in retired:
+            rt.close()
         self.runtime.close()
         self.store.close()
 
@@ -250,6 +320,20 @@ def _enforce_same_origin(request: Request, settings: Settings) -> None:
             raise HTTPException(403, "Origin mismatch.")
 
 
+def _require_local_setup_allowed(request: Request, settings: Settings, *, mutate: bool = False) -> None:
+    """Restrict the onboarding/settings API to non-production loopback clients only."""
+    if settings.is_production:
+        raise HTTPException(
+            403,
+            "Onboarding wizard is disabled in production. Configure environment variables on your host.",
+        )
+    if mutate:
+        _enforce_same_origin(request, settings)
+    client_host = (request.client.host if request.client else "").strip().lower()
+    if client_host not in ("127.0.0.1", "::1", "localhost", "testclient"):
+        raise HTTPException(403, "Setup wizard is only accessible from localhost.")
+
+
 def _validate_report_id(report_id: str) -> str:
     if not REPORT_ID_RE.match(report_id):
         raise HTTPException(404, "Report not found.")
@@ -274,7 +358,7 @@ def _friendly_error_message(exc: BaseException, ref: str) -> str:
 
 # ---------- app factory ----------
 
-def create_app(settings: Settings | None = None) -> FastAPI:
+def create_app(settings: Settings | None = None, *, env_path: Path | None = None) -> FastAPI:
     cfg = settings if settings is not None else Settings.from_env(validate=True)
     cfg.validate()
     configure_logging(env=cfg.env)
@@ -289,7 +373,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         with state_lock:
             st = state_holder.get("state")
             if st is None:
-                st = ServerState(cfg)
+                st = ServerState(cfg, env_path=env_path)
                 state_holder["state"] = st
             return st
 
@@ -345,7 +429,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
         response.headers["Cross-Origin-Opener-Policy"] = "same-origin"
         response.headers["Content-Security-Policy"] = st.csp
-        if cfg.is_production or request.url.scheme == "https":
+        if st.settings.is_production or request.url.scheme == "https":
             response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
         return response
 
@@ -362,7 +446,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         new_token = secrets.token_urlsafe(32)
         th = hash_token(new_token)
         oid = st.store.ensure_owner(th)
-        _set_owner_cookie(request, response, cfg, new_token)
+        _set_owner_cookie(request, response, st.settings, new_token)
         return oid, th[:12]
 
     # ---------- pages ----------
@@ -385,6 +469,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @app.get("/health/ready")
     def health_ready(response: Response) -> dict[str, Any]:
         st = get_state()
+        cur = st.settings
         db_info = st.store.health()
         db_state = db_info.get("status", "failed")
 
@@ -396,13 +481,13 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         except OSError:
             writable = "failed"
 
-        cache_state = "disabled" if not cfg.cache_enabled else ("ok" if st.runtime.cache.healthy() else "degraded")
+        cache_state = "disabled" if not cur.cache_enabled else ("ok" if st.runtime.cache.healthy() else "degraded")
         providers_state = (
             "degraded"
             if (st.runtime.llm_breaker.state == "open" or st.runtime.search_breaker.state == "open")
             else "ok"
         )
-        config_state = "ok" if (cfg.fake or not cfg.missing_keys()) else "degraded"
+        config_state = "ok" if (cur.fake or not cur.missing_keys()) else "degraded"
 
         components = {
             "database": db_state,
@@ -411,7 +496,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             "providers": providers_state,
             "config": config_state,
         }
-        if db_state == "failed" or writable == "failed" or (cfg.is_production and config_state != "ok"):
+        if db_state == "failed" or writable == "failed" or (cur.is_production and config_state != "ok"):
             response.status_code = 503
             overall = "not_ready"
         elif any(v == "degraded" for v in components.values()):
@@ -422,21 +507,84 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     @app.get("/version")
     def version() -> dict[str, str]:
-        return {"version": VERSION, "env": cfg.env}
+        cur = get_state().settings
+        return {"version": VERSION, "env": cur.env}
 
     @app.get("/api/status")
     def status() -> dict[str, Any]:
-        available = bool(cfg.fake or not cfg.missing_keys())
+        cur = get_state().settings
+        available = bool(cur.fake or not cur.missing_keys())
         out: dict[str, Any] = {
             "available": available,
-            "demo_mode": bool(cfg.fake),
-            "demo_controls": not cfg.is_production,
-            "primary_model": cfg.primary_model,
-            "verifier_model": cfg.verifier_model,
+            "demo_mode": bool(cur.fake),
+            "demo_controls": not cur.is_production,
+            "setup_enabled": not cur.is_production,
+            "needs_onboarding": (not cur.is_production) and (not available),
+            "primary_model": cur.primary_model,
+            "verifier_model": cur.verifier_model,
         }
-        if not cfg.is_production:
-            out["fake"] = cfg.fake
+        if not cur.is_production:
+            out["fake"] = cur.fake
         return out
+
+    # ---------- local onboarding & settings wizard ----------
+
+    @app.get("/api/setup")
+    def get_setup(request: Request, response: Response) -> dict[str, Any]:
+        st = get_state()
+        _require_local_setup_allowed(request, st.settings, mutate=False)
+        response.headers["Cache-Control"] = "no-store"
+        return setup_payload(st.settings, st.env_path)
+
+    @app.post("/api/setup")
+    def save_setup(body: SetupUpdateRequest, request: Request, response: Response) -> dict[str, Any]:
+        st = get_state()
+        _require_local_setup_allowed(request, st.settings, mutate=True)
+        response.headers["Cache-Control"] = "no-store"
+        raw = body.model_dump(exclude_unset=True)
+        try:
+            new_settings, restart_required = apply_setup_update(st.settings, raw)
+        except ConfigError as exc:
+            raise HTTPException(422, str(exc)) from None
+        try:
+            write_env_file(new_settings, st.env_path)
+            sync_process_env(new_settings)
+            st.reload_settings(new_settings)
+        except OSError as exc:
+            ref = capture_error(exc, layer="setup")
+            raise HTTPException(500, f"Couldn't write configuration file (ref {ref}).") from None
+        log_event(
+            logger,
+            logging.INFO,
+            "setup.updated",
+            fake=new_settings.fake,
+            primary_model=new_settings.primary_model,
+            verifier_model=new_settings.verifier_model,
+            restart_required=restart_required,
+        )
+        out = setup_payload(new_settings, st.env_path)
+        out["saved"] = True
+        out["restart_required"] = restart_required
+        return out
+
+    @app.post("/api/setup/test")
+    def test_setup_keys(body: SetupTestRequest, request: Request, response: Response) -> dict[str, Any]:
+        st = get_state()
+        cur = st.settings
+        _require_local_setup_allowed(request, cur, mutate=True)
+        response.headers["Cache-Control"] = "no-store"
+        neb_key = (body.nebius_api_key or "").strip() or cur.nebius_api_key
+        tav_key = (body.tavily_api_key or "").strip() or cur.tavily_api_key
+        base_url = (body.nebius_base_url or "").strip() or cur.nebius_base_url
+        primary = (body.primary_model or "").strip() or cur.primary_model
+        verifier = (body.verifier_model or "").strip() or cur.verifier_model
+        return verify_connections(
+            nebius_api_key=neb_key,
+            tavily_api_key=tav_key,
+            nebius_base_url=base_url,
+            primary_model=primary,
+            verifier_model=verifier,
+        )
 
     # ---------- retired GET /api/run ----------
 
@@ -452,14 +600,15 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     @app.post("/api/checks", status_code=202)
     def create_check(body: CreateCheckRequest, request: Request, response: Response) -> dict[str, Any]:
-        _enforce_same_origin(request, cfg)
         st = get_state()
+        cur = st.settings
+        _enforce_same_origin(request, cur)
         if st.shutting_down:
             raise HTTPException(503, "Prior Art is restarting. Please try again in a moment.")
 
         sim = (body.simulate or "").strip()
         if sim:
-            if cfg.is_production:
+            if cur.is_production:
                 raise HTTPException(400, "Simulation modes are disabled in production.")
             if sim not in SIMULATE_MODES:
                 raise HTTPException(400, f"simulate must be one of {SIMULATE_MODES}")
@@ -488,10 +637,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 return {"id": str(existing[0]), "status": str(existing[1]), "idempotent": True}
 
         # Daily spend budget guard (skip when demo/fake mode is active).
-        if not cfg.fake:
+        if not cur.fake:
             within_budget, _ = st.store.check_daily_budget(
-                max_credits=cfg.daily_budget_credits,
-                max_output_tokens=cfg.daily_budget_output_tokens,
+                max_credits=cur.daily_budget_credits,
+                max_output_tokens=cur.daily_budget_output_tokens,
             )
             if not within_budget:
                 raise HTTPException(
@@ -500,22 +649,22 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 )
 
         # Persistent SQLite token-bucket rate limits (per-owner 10m & day, per-IP 10m, global hourly).
-        ip_hash = _daily_ip_hash(_client_ip(request, cfg))
+        ip_hash = _daily_ip_hash(_client_ip(request, cur))
         checks = [
-            (f"owner10m:{owner_id}", cfg.rate_limit_10m, 600.0, "Too many checks right now. Try again in a few minutes."),
+            (f"owner10m:{owner_id}", cur.rate_limit_10m, 600.0, "Too many checks right now. Try again in a few minutes."),
             (
                 f"ownerDay:{owner_id}",
-                cfg.rate_limit_day,
+                cur.rate_limit_day,
                 86400.0,
-                f"You've reached today's limit of {cfg.rate_limit_day} checks. It resets at 00:00 UTC.",
+                f"You've reached today's limit of {cur.rate_limit_day} checks. It resets at 00:00 UTC.",
             ),
             (
                 f"ip10m:{ip_hash}",
-                max(cfg.rate_limit_10m * 2, 6),
+                max(cur.rate_limit_10m * 2, 6),
                 600.0,
                 "Too many checks from this network. Try again in a few minutes.",
             ),
-            ("globalHr", cfg.rate_limit_global_hour, 3600.0, "Prior Art is busy right now. Try again in a minute."),
+            ("globalHr", cur.rate_limit_global_hour, 3600.0, "Prior Art is busy right now. Try again in a minute."),
         ]
         for bkey, cap, window, msg in checks:
             allowed, retry_after = st.store.consume_rate_limit(bkey, capacity=cap, refill_seconds=window)
@@ -526,8 +675,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                     headers={"Retry-After": str(retry_after)},
                 )
 
-        # Global concurrency cap.
-        if not st.semaphore.acquire(blocking=False):
+        # Global concurrency cap (capture local references so live reload cannot mismatch release/runtime).
+        sem = st.semaphore
+        rt = st.runtime
+        if not sem.acquire(blocking=False):
             raise HTTPException(
                 status_code=429,
                 detail="Prior Art is busy right now. Try again in a minute.",
@@ -535,25 +686,25 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             )
 
         run_settings = Settings(
-            env=cfg.env,
-            nebius_api_key=cfg.nebius_api_key,
-            nebius_base_url=cfg.nebius_base_url,
-            tavily_api_key=cfg.tavily_api_key,
-            primary_model=cfg.primary_model,
-            verifier_model=cfg.verifier_model,
-            max_candidates=cfg.max_candidates,
-            results_per_query=cfg.results_per_query,
-            page_chars=cfg.page_chars,
-            workers=cfg.workers,
-            search_concurrency=cfg.search_concurrency,
-            model_concurrency=cfg.model_concurrency,
-            check_deadline_s=cfg.check_deadline_s,
-            cache_enabled=cfg.cache_enabled,
-            cache_path=cfg.cache_path,
-            db_path=cfg.db_path,
-            runs_dir=cfg.runs_dir,
+            env=cur.env,
+            nebius_api_key=cur.nebius_api_key,
+            nebius_base_url=cur.nebius_base_url,
+            tavily_api_key=cur.tavily_api_key,
+            primary_model=cur.primary_model,
+            verifier_model=cur.verifier_model,
+            max_candidates=cur.max_candidates,
+            results_per_query=cur.results_per_query,
+            page_chars=cur.page_chars,
+            workers=cur.workers,
+            search_concurrency=cur.search_concurrency,
+            model_concurrency=cur.model_concurrency,
+            check_deadline_s=cur.check_deadline_s,
+            cache_enabled=cur.cache_enabled,
+            cache_path=cur.cache_path,
+            db_path=cur.db_path,
+            runs_dir=cur.runs_dir,
             # Simulated outage demos use offline demo clients so they never spend real credits.
-            fake=True if (sim and not cfg.is_production) else cfg.fake,
+            fake=True if (sim and not cur.is_production) else cur.fake,
             simulate=sim,
         )
 
@@ -571,11 +722,11 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 pivot_of_report_id=body.pivot_of_report_id,
             )
         except Exception:
-            st.semaphore.release()
+            sem.release()
             raise
 
         if not created:
-            st.semaphore.release()
+            sem.release()
             return {"id": report_id, "status": "running", "idempotent": True}
 
         active = _ActiveCheck(report_id=report_id, owner_id=owner_id, idea_key=idea_key)
@@ -601,7 +752,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             tok_cid = check_id_var.set(report_id)
             tok_own = owner_ref_var.set(owner_ref)
             try:
-                agent = build(run_settings, emit=emit, runtime=st.runtime, budget=budget)
+                agent = build(run_settings, emit=emit, runtime=rt, budget=budget)
                 result = agent.run(body.idea, report_id=report_id, save_file=False)
                 st.store.finish_report(
                     report_id,
@@ -630,7 +781,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                     pass
             finally:
                 active.finish()
-                st.semaphore.release()
+                sem.release()
                 check_id_var.reset(tok_cid)
                 owner_ref_var.reset(tok_own)
                 # Keep finished entry briefly so immediate SSE reconnects see done=True; prune old ones.
@@ -800,9 +951,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     @app.delete("/api/reports/{report_id}")
     def delete_report(report_id: str, request: Request, response: Response) -> dict[str, Any]:
-        _enforce_same_origin(request, cfg)
-        rid = _validate_report_id(report_id)
         st = get_state()
+        _enforce_same_origin(request, st.settings)
+        rid = _validate_report_id(report_id)
         owner_id, _ = resolve_owner(request, response, create=False)
         if owner_id is None:
             raise HTTPException(404, "Report not found.")
@@ -816,9 +967,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     @app.post("/api/reports/{report_id}/restore")
     def restore_report(report_id: str, request: Request, response: Response) -> dict[str, Any]:
-        _enforce_same_origin(request, cfg)
-        rid = _validate_report_id(report_id)
         st = get_state()
+        _enforce_same_origin(request, st.settings)
+        rid = _validate_report_id(report_id)
         owner_id, _ = resolve_owner(request, response, create=False)
         if owner_id is None:
             raise HTTPException(404, "Report not found.")
@@ -844,8 +995,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     @app.delete("/api/me")
     def delete_me(request: Request, response: Response) -> dict[str, Any]:
-        _enforce_same_origin(request, cfg)
         st = get_state()
+        _enforce_same_origin(request, st.settings)
         owner_id, _ = resolve_owner(request, response, create=False)
         if owner_id is None:
             raise HTTPException(404, "No data stored for this browser.")

@@ -399,10 +399,125 @@
     border-radius: var(--radius-l); padding: 24px; max-width: 460px; width: 92vw;
   }
   dialog.modal::backdrop { background: var(--scrim); }
-  dialog.modal input {
-    width: 100%; min-height: var(--tap); margin-top: 8px; padding: 8px 12px;
+  dialog.modal input[type="text"],
+  dialog.modal input[type="password"],
+  dialog.modal input[type="url"],
+  dialog.modal input[type="number"] {
+    width: 100%; min-height: var(--tap); margin-top: 6px; padding: 8px 12px;
     background: var(--surface-0); color: var(--ink-1); border: 1px solid var(--border);
     border-radius: var(--radius-m); font: inherit;
+  }
+  dialog.modal input:focus-visible { border-color: var(--accent); }
+
+  /* Header tools */
+  .header-right { margin-left: auto; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .header-right .pill { margin-left: 0; }
+  .setup-btn { font-size: var(--fs-s); padding: 6px 12px; min-height: 36px; }
+
+  /* Onboarding & Settings Wizard */
+  dialog.modal-wizard {
+    max-width: 760px; width: 94vw; max-height: 90vh; padding: 0; overflow: hidden;
+  }
+  dialog.modal-wizard[open] { display: flex; flex-direction: column; }
+  .wiz-head {
+    padding: 18px 22px 14px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
+  }
+  .wiz-head h2 { margin: 0; font-size: var(--fs-xl); }
+  .wiz-sub { color: var(--ink-2); font-size: var(--fs-s); margin-top: 3px; }
+  .wiz-close { width: var(--tap); height: var(--tap); padding: 0; flex-shrink: 0; }
+
+  .wiz-steps {
+    display: flex; gap: 6px; padding: 12px 22px; background: var(--surface-0);
+    border-bottom: 1px solid var(--border); overflow-x: auto;
+  }
+  .wiz-step-btn {
+    font-size: var(--fs-s); padding: 6px 12px; min-height: 36px; border-radius: 99px;
+    white-space: nowrap; color: var(--ink-2); background: var(--surface-1);
+    border: 1px solid var(--border);
+  }
+  .wiz-step-btn.active {
+    color: var(--btn-primary-ink); background: var(--open-solid);
+    border-color: var(--open-solid); font-weight: 650;
+  }
+  .wiz-step-btn.done { color: var(--open-ink); border-color: var(--open-border); }
+
+  .wiz-body { padding: 20px 22px; overflow-y: auto; flex: 1 1 auto; }
+  .wiz-panel h3 { margin: 0 0 6px; font-size: var(--fs-l); }
+  .wiz-desc { color: var(--ink-2); font-size: var(--fs-s); margin: 0 0 16px; }
+  .wiz-section-title {
+    font-size: var(--fs-xs); text-transform: uppercase; letter-spacing: .08em;
+    color: var(--ink-2); margin: 18px 0 8px; padding-top: 12px; border-top: 1px solid var(--border);
+  }
+  .wiz-section-title:first-of-type { margin-top: 0; padding-top: 0; border-top: none; }
+
+  .wiz-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+  .wiz-field { display: flex; flex-direction: column; }
+  .wiz-field.full { grid-column: 1 / -1; }
+  .wiz-label-row {
+    display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap;
+    font-size: var(--fs-s); font-weight: 600;
+  }
+  .wiz-hint { font-size: var(--fs-xs); color: var(--ink-2); margin-top: 4px; }
+  .wiz-key-wrap { display: flex; gap: 8px; align-items: stretch; margin-top: 6px; }
+  .wiz-key-wrap input { margin-top: 0; flex: 1 1 auto; }
+  .wiz-eye { min-width: 68px; font-size: var(--fs-s); padding: 6px 10px; }
+
+  .wiz-badge {
+    font: var(--fs-xs) var(--mono); padding: 2px 8px; border-radius: 99px;
+    border: 1px solid var(--border); color: var(--ink-2); background: var(--surface-2);
+  }
+  .wiz-badge.ok { color: var(--open-ink); border-color: var(--open-border); background: var(--open-bg); }
+  .wiz-badge.warn { color: var(--partial-ink); border-color: var(--partial-border); background: var(--partial-bg); }
+  .wiz-badge.bad { color: var(--taken-ink); border-color: var(--taken-border); background: var(--taken-bg); }
+
+  .wiz-check-row {
+    display: flex; align-items: flex-start; gap: 10px; padding: 12px 14px;
+    background: var(--surface-0); border: 1px solid var(--border); border-radius: var(--radius-m);
+    margin-bottom: 14px; cursor: pointer;
+  }
+  .wiz-check-row input[type="checkbox"] {
+    width: 18px; height: 18px; margin: 2px 0 0; accent-color: var(--open-solid); flex-shrink: 0;
+  }
+  .wiz-check-inline {
+    display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-xs);
+    color: var(--ink-2); margin-top: 6px; cursor: pointer;
+  }
+  .wiz-check-inline input[type="checkbox"] { width: 15px; height: 15px; accent-color: var(--taken-ink); }
+  .wiz-dimmed { opacity: 0.55; }
+
+  .wiz-test-box {
+    margin-top: 14px; padding: 12px 14px; background: var(--surface-0);
+    border: 1px solid var(--border); border-radius: var(--radius-m); font-size: var(--fs-s);
+  }
+  .wiz-test-line { display: flex; align-items: baseline; gap: 8px; padding: 4px 0; overflow-wrap: anywhere; }
+  .wiz-presets { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+  .wiz-preset { font-size: var(--fs-xs); padding: 4px 10px; min-height: 30px; border-radius: 99px; }
+
+  .wiz-family-note {
+    margin-top: 14px; padding: 10px 14px; border-radius: var(--radius-m);
+    font-size: var(--fs-s); border: 1px solid var(--open-border);
+    background: var(--open-bg); color: var(--open-ink);
+  }
+  .wiz-family-note.warn {
+    border-color: var(--partial-border); background: var(--partial-bg); color: var(--partial-ink);
+  }
+
+  .wiz-summary {
+    width: 100%; border-collapse: collapse; font-size: var(--fs-s);
+    background: var(--surface-0); border: 1px solid var(--border); border-radius: var(--radius-m);
+    overflow: hidden;
+  }
+  .wiz-summary th, .wiz-summary td {
+    text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--border); vertical-align: top;
+  }
+  .wiz-summary th { color: var(--ink-2); font-weight: 600; width: 38%; }
+  .wiz-summary td { font-family: var(--mono); font-size: var(--fs-xs); overflow-wrap: anywhere; }
+  .wiz-summary tr:last-child th, .wiz-summary tr:last-child td { border-bottom: none; }
+
+  .wiz-foot {
+    padding: 14px 22px; border-top: 1px solid var(--border); background: var(--surface-1);
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
   }
 
   footer.foot {
@@ -413,7 +528,7 @@
   .meta-line { font-size: var(--fs-xs); color: var(--ink-2); margin-top: 10px; }
 
   @media (max-width: 760px) {
-    .top, .cols { grid-template-columns: 1fr; }
+    .top, .cols, .wiz-grid { grid-template-columns: 1fr; }
     .grid th.proj, .grid td.name {
       position: sticky; left: 0; background: var(--surface-1); z-index: 2; width: 132px;
     }
@@ -422,7 +537,7 @@
   @media (max-width: 600px) {
     .wrap { padding: 16px 14px 64px; }
     .row > select, .row > button.primary { flex: 1 1 100%; margin-left: 0; max-width: 100%; }
-    .pill { margin-left: 0; }
+    .pill, .header-right { margin-left: 0; }
   }
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
@@ -434,8 +549,19 @@
   <header>
     <a href="/" class="brand" id="homelink"><h1>Prior <span>Art</span></h1></a>
     <div class="tag">Has someone built this already? Every overlap links to a checked quote.</div>
-    <div class="pill hidden" id="status" role="status"></div>
+    <div class="header-right">
+      <div class="pill hidden" id="status" role="status"></div>
+      <button type="button" class="setup-btn hidden" id="open-setup" aria-haspopup="dialog">⚙ Setup &amp; Settings</button>
+    </div>
   </header>
+
+  <div class="banner info hidden" id="setup-banner" role="status">
+    <span><b>Finish setup to run live checks.</b> Add your Nebius Token Factory &amp; Tavily API keys, or switch to offline demo mode.</span>
+    <div class="banner-actions">
+      <button type="button" class="primary" id="banner-open-setup">Open Setup Wizard</button>
+      <button type="button" id="banner-enable-demo">Use Demo Mode</button>
+    </div>
+  </div>
 
   <div class="banner bad hidden" id="offline-banner" role="status">
     <span>You're offline. Your idea stays here until you reconnect.</span>
@@ -594,6 +720,262 @@
     <a class="btn" href="/api/me/export">Download my data</a>
     <button type="button" id="del-cancel" class="push-right">Cancel</button>
     <button type="button" id="del-go" class="danger" disabled>Delete everything</button>
+  </div>
+</dialog>
+
+<dialog id="setup-dialog" class="modal modal-wizard" aria-labelledby="wiz-title">
+  <div class="wiz-head">
+    <div>
+      <h2 id="wiz-title">Onboarding &amp; Settings Wizard</h2>
+      <div class="wiz-sub" id="wiz-subtitle">Configure your API keys, cross-family models, pipeline tuning, and safety limits. Saved locally to <code>.env</code> (mode 0600).</div>
+    </div>
+    <button type="button" class="wiz-close" id="wiz-close" aria-label="Close setup wizard">✕</button>
+  </div>
+
+  <nav class="wiz-steps" aria-label="Setup steps">
+    <button type="button" class="wiz-step-btn active" data-step="0">1 · API Keys</button>
+    <button type="button" class="wiz-step-btn" data-step="1">2 · Models</button>
+    <button type="button" class="wiz-step-btn" data-step="2">3 · Pipeline</button>
+    <button type="button" class="wiz-step-btn" data-step="3">4 · Limits &amp; Paths</button>
+    <button type="button" class="wiz-step-btn" data-step="4">5 · Review &amp; Save</button>
+  </nav>
+
+  <div class="wiz-body">
+    <div class="banner bad hidden" id="wiz-err" role="alert"></div>
+
+    <!-- Step 1: API Keys & Mode -->
+    <section class="wiz-panel" data-panel="0">
+      <h3>Provider API Keys &amp; Mode</h3>
+      <p class="wiz-desc">Prior Art uses Nebius Token Factory for cross-family LLM verification and Tavily for real-time web search &amp; full-page extraction. Leave a key blank to keep an existing saved key.</p>
+
+      <label class="wiz-check-row" for="w-fake">
+        <input type="checkbox" id="w-fake">
+        <span>
+          <b>Offline Demo Mode (<code>PRIORART_FAKE=1</code>)</b><br>
+          <span class="wiz-hint">Try the entire pipeline, SQLite persistence, SSE progress, and UI using fictional offline fixtures — zero API keys or spend required.</span>
+        </span>
+      </label>
+
+      <div id="w-live-fields" class="wiz-grid">
+        <div class="wiz-field full">
+          <div class="wiz-label-row">
+            <label for="w-nebius-key">Nebius Token Factory API Key (<code>NEBIUS_API_KEY</code>)</label>
+            <span class="wiz-badge" id="w-nebius-badge">Not set</span>
+          </div>
+          <div class="wiz-key-wrap">
+            <input id="w-nebius-key" type="password" autocomplete="off" spellcheck="false" placeholder="Enter Nebius API key (leave blank to keep current)">
+            <button type="button" class="wiz-eye" data-eye="w-nebius-key">Show</button>
+          </div>
+          <div class="wiz-hint">
+            Get a key from <a href="https://tokenfactory.nebius.com" target="_blank" rel="noopener noreferrer">Nebius Token Factory</a>.
+            <label class="wiz-check-inline hidden" id="w-clear-nebius-wrap"><input type="checkbox" id="w-clear-nebius"> Clear saved Nebius key</label>
+          </div>
+        </div>
+
+        <div class="wiz-field full">
+          <div class="wiz-label-row">
+            <label for="w-tavily-key">Tavily Search API Key (<code>TAVILY_API_KEY</code>)</label>
+            <span class="wiz-badge" id="w-tavily-badge">Not set</span>
+          </div>
+          <div class="wiz-key-wrap">
+            <input id="w-tavily-key" type="password" autocomplete="off" spellcheck="false" placeholder="tvly-... (leave blank to keep current)">
+            <button type="button" class="wiz-eye" data-eye="w-tavily-key">Show</button>
+          </div>
+          <div class="wiz-hint">
+            Get a key from <a href="https://app.tavily.com" target="_blank" rel="noopener noreferrer">Tavily Dashboard</a>.
+            <label class="wiz-check-inline hidden" id="w-clear-tavily-wrap"><input type="checkbox" id="w-clear-tavily"> Clear saved Tavily key</label>
+          </div>
+        </div>
+
+        <div class="wiz-field full">
+          <div class="wiz-label-row">
+            <label for="w-nebius-url">Nebius OpenAI-Compatible Base URL (<code>NEBIUS_BASE_URL</code>)</label>
+          </div>
+          <input id="w-nebius-url" type="url" autocomplete="off" spellcheck="false" placeholder="https://api.tokenfactory.nebius.com/v1/">
+          <span class="wiz-hint">Must be an <code>http://</code> or <code>https://</code> endpoint.</span>
+        </div>
+      </div>
+
+      <div class="row">
+        <button type="button" id="w-test-btn">Test API Connections</button>
+        <span class="wiz-hint" id="w-test-hint">Verifies keys live and populates available Nebius models in Step 2.</span>
+      </div>
+      <div class="wiz-test-box hidden" id="w-test-results" role="status" aria-live="polite"></div>
+    </section>
+
+    <!-- Step 2: Models -->
+    <section class="wiz-panel hidden" data-panel="1">
+      <h3>Cross-Family Models</h3>
+      <p class="wiz-desc">Use two different model families so the verifier checks overlap claims independently without sharing the writer's blind spots.</p>
+
+      <div class="wiz-grid">
+        <div class="wiz-field full">
+          <div class="wiz-label-row">
+            <label for="w-primary-model">Writer Model (<code>PRIORART_PRIMARY_MODEL</code>)</label>
+            <span class="wiz-hint">Decomposes features, plans queries, compares pages, proposes pivots</span>
+          </div>
+          <input id="w-primary-model" type="text" list="writer-model-list" autocomplete="off" spellcheck="false">
+          <datalist id="writer-model-list"></datalist>
+          <div class="wiz-presets" id="w-writer-presets"></div>
+        </div>
+
+        <div class="wiz-field full">
+          <div class="wiz-label-row">
+            <label for="w-verifier-model">Verifier Model (<code>PRIORART_VERIFIER_MODEL</code>)</label>
+            <span class="wiz-hint">Independently confirms, lowers, or rejects every quoted claim</span>
+          </div>
+          <input id="w-verifier-model" type="text" list="verifier-model-list" autocomplete="off" spellcheck="false">
+          <datalist id="verifier-model-list"></datalist>
+          <div class="wiz-presets" id="w-verifier-presets"></div>
+        </div>
+      </div>
+
+      <div class="wiz-family-note" id="w-family-note" role="status"></div>
+    </section>
+
+    <!-- Step 3: Pipeline & Performance -->
+    <section class="wiz-panel hidden" data-panel="2">
+      <h3>Search, Concurrency &amp; Caching</h3>
+      <p class="wiz-desc">Control search breadth, page reading size, parallelism, timeouts, and SQLite response caching.</p>
+
+      <div class="wiz-grid">
+        <div class="wiz-field">
+          <label class="wiz-label-row" for="w-max-candidates">Max projects compared <span class="wiz-hint">1–12</span></label>
+          <input id="w-max-candidates" type="number" min="1" max="12" step="1">
+          <span class="wiz-hint"><code>PRIORART_MAX_CANDIDATES</code></span>
+        </div>
+        <div class="wiz-field">
+          <label class="wiz-label-row" for="w-results-per-query">Results per search query <span class="wiz-hint">1–10</span></label>
+          <input id="w-results-per-query" type="number" min="1" max="10" step="1">
+          <span class="wiz-hint"><code>PRIORART_RESULTS_PER_QUERY</code></span>
+        </div>
+        <div class="wiz-field">
+          <label class="wiz-label-row" for="w-page-chars">Max characters per page <span class="wiz-hint">1,000–12,000</span></label>
+          <input id="w-page-chars" type="number" min="1000" max="12000" step="500">
+          <span class="wiz-hint"><code>PRIORART_PAGE_CHARS</code></span>
+        </div>
+        <div class="wiz-field">
+          <label class="wiz-label-row" for="w-check-deadline">Check deadline (seconds) <span class="wiz-hint">10–600</span></label>
+          <input id="w-check-deadline" type="number" min="10" max="600" step="10">
+          <span class="wiz-hint"><code>PRIORART_CHECK_DEADLINE_S</code></span>
+        </div>
+        <div class="wiz-field">
+          <label class="wiz-label-row" for="w-workers">Worker threads <span class="wiz-hint">1–16</span></label>
+          <input id="w-workers" type="number" min="1" max="16" step="1">
+          <span class="wiz-hint"><code>PRIORART_WORKERS</code></span>
+        </div>
+        <div class="wiz-field">
+          <label class="wiz-label-row" for="w-search-conc">Search concurrency <span class="wiz-hint">1–16</span></label>
+          <input id="w-search-conc" type="number" min="1" max="16" step="1">
+          <span class="wiz-hint"><code>PRIORART_SEARCH_CONCURRENCY</code></span>
+        </div>
+        <div class="wiz-field">
+          <label class="wiz-label-row" for="w-model-conc">Model concurrency <span class="wiz-hint">1–16</span></label>
+          <input id="w-model-conc" type="number" min="1" max="16" step="1">
+          <span class="wiz-hint"><code>PRIORART_MODEL_CONCURRENCY</code></span>
+        </div>
+        <div class="wiz-field">
+          <label class="wiz-label-row" for="w-max-conc-checks">Max concurrent server checks <span class="wiz-hint">1–32</span></label>
+          <input id="w-max-conc-checks" type="number" min="1" max="32" step="1">
+          <span class="wiz-hint"><code>PRIORART_MAX_CONCURRENT_CHECKS</code></span>
+        </div>
+      </div>
+
+      <label class="wiz-check-row" for="w-cache-enabled">
+        <input type="checkbox" id="w-cache-enabled">
+        <span>
+          <b>Enable SQLite API Cache (<code>PRIORART_CACHE=1</code>)</b><br>
+          <span class="wiz-hint">Caches search, page extraction, and model responses with 24h TTL &amp; single-flight deduplication so repeat runs are instant and free.</span>
+        </span>
+      </label>
+    </section>
+
+    <!-- Step 4: Limits, Budgets, Security & Paths -->
+    <section class="wiz-panel hidden" data-panel="3">
+      <h3>Rate Limits, Spend Guardrails &amp; Storage</h3>
+      <p class="wiz-desc">Protect your API credits with SQLite token-bucket rate limits, daily spend caps, host guards, and storage paths.</p>
+
+      <div class="wiz-section-title">Rate Limits &amp; Daily Budgets</div>
+      <div class="wiz-grid">
+        <div class="wiz-field">
+          <label class="wiz-label-row" for="w-rl-10m">Checks / owner / 10 min <span class="wiz-hint">1–1,000</span></label>
+          <input id="w-rl-10m" type="number" min="1" max="1000" step="1">
+          <span class="wiz-hint"><code>PRIORART_RATE_LIMIT_10M</code></span>
+        </div>
+        <div class="wiz-field">
+          <label class="wiz-label-row" for="w-rl-day">Checks / owner / day <span class="wiz-hint">1–10,000</span></label>
+          <input id="w-rl-day" type="number" min="1" max="10000" step="1">
+          <span class="wiz-hint"><code>PRIORART_RATE_LIMIT_DAY</code></span>
+        </div>
+        <div class="wiz-field">
+          <label class="wiz-label-row" for="w-rl-global">Global checks / hour <span class="wiz-hint">1–10,000</span></label>
+          <input id="w-rl-global" type="number" min="1" max="10000" step="1">
+          <span class="wiz-hint"><code>PRIORART_RATE_LIMIT_GLOBAL_HOUR</code></span>
+        </div>
+        <div class="wiz-field">
+          <label class="wiz-label-row" for="w-budget-credits">Daily Tavily credit cap <span class="wiz-hint">1–10M</span></label>
+          <input id="w-budget-credits" type="number" min="1" max="10000000" step="100">
+          <span class="wiz-hint"><code>PRIORART_DAILY_BUDGET_CREDITS</code></span>
+        </div>
+        <div class="wiz-field full">
+          <label class="wiz-label-row" for="w-budget-tokens">Daily LLM output token cap <span class="wiz-hint">1,000–1,000,000,000</span></label>
+          <input id="w-budget-tokens" type="number" min="1000" max="1000000000" step="50000">
+          <span class="wiz-hint"><code>PRIORART_DAILY_BUDGET_OUTPUT_TOKENS</code></span>
+        </div>
+      </div>
+
+      <div class="wiz-section-title">Network &amp; Proxy Security</div>
+      <div class="wiz-grid">
+        <div class="wiz-field">
+          <label class="wiz-label-row" for="w-allowed-hosts">Extra allowed hosts</label>
+          <input id="w-allowed-hosts" type="text" autocomplete="off" spellcheck="false" placeholder="prior-art.example, app.local">
+          <span class="wiz-hint"><code>PRIORART_ALLOWED_HOSTS</code> (comma-separated; restart applies)</span>
+        </div>
+        <div class="wiz-field">
+          <label class="wiz-label-row" for="w-public-origin">Public origin URL (optional)</label>
+          <input id="w-public-origin" type="url" autocomplete="off" spellcheck="false" placeholder="https://prior-art.example">
+          <span class="wiz-hint"><code>PRIORART_PUBLIC_ORIGIN</code></span>
+        </div>
+      </div>
+      <label class="wiz-check-row" for="w-trust-proxy">
+        <input type="checkbox" id="w-trust-proxy">
+        <span>
+          <b>Trust reverse-proxy headers (<code>PRIORART_TRUST_PROXY_HEADERS=1</code>)</b><br>
+          <span class="wiz-hint">Enable only behind a trusted reverse proxy that sets <code>X-Forwarded-For</code> and <code>X-Forwarded-Proto</code>.</span>
+        </span>
+      </label>
+
+      <div class="wiz-section-title">Storage Paths</div>
+      <div class="wiz-grid">
+        <div class="wiz-field full">
+          <label class="wiz-label-row" for="w-db-path">SQLite database path (<code>PRIORART_DB_PATH</code>)</label>
+          <input id="w-db-path" type="text" autocomplete="off" spellcheck="false">
+          <span class="wiz-hint">Restart server to switch database file. Cannot be filesystem root or home directory.</span>
+        </div>
+        <div class="wiz-field">
+          <label class="wiz-label-row" for="w-cache-path">SQLite cache path (<code>PRIORART_CACHE_PATH</code>)</label>
+          <input id="w-cache-path" type="text" autocomplete="off" spellcheck="false">
+        </div>
+        <div class="wiz-field">
+          <label class="wiz-label-row" for="w-runs-dir">CLI runs folder (<code>PRIORART_RUNS_DIR</code>)</label>
+          <input id="w-runs-dir" type="text" autocomplete="off" spellcheck="false">
+        </div>
+      </div>
+    </section>
+
+    <!-- Step 5: Review & Save -->
+    <section class="wiz-panel hidden" data-panel="4">
+      <h3>Review &amp; Apply</h3>
+      <p class="wiz-desc">Settings are validated, written atomically to your local <code>.env</code> (owner-only <code>0600</code> permissions), and applied live without restarting the server.</p>
+      <table class="wiz-summary" id="w-review-table"></table>
+    </section>
+  </div>
+
+  <div class="wiz-foot">
+    <button type="button" class="linkbtn" id="wiz-reset">Reset defaults</button>
+    <button type="button" id="wiz-prev" class="push-right">Back</button>
+    <button type="button" id="wiz-next" class="primary">Next</button>
+    <button type="button" id="wiz-save" class="primary hidden">Save &amp; Apply</button>
   </div>
 </dialog>
 
@@ -766,26 +1148,39 @@ document.querySelectorAll("[data-sample]").forEach(btn => {
   };
 });
 
-async function loadStatus() {
+let setupState = null;
+let wizStep = 0;
+let discoveredModels = [];
+
+async function loadStatus({autoOnboard = false} = {}) {
   const el = $("#status");
+  const openBtn = $("#open-setup");
+  const banner = $("#setup-banner");
   try {
     const s = await api("/api/status");
     el.classList.remove("hidden", "warn", "bad");
     if (s.demo_controls) $("#sim").classList.remove("hidden");
+    openBtn.classList.toggle("hidden", !s.setup_enabled);
+    banner.classList.toggle("hidden", !(s.setup_enabled && s.needs_onboarding));
     if (s.demo_mode) {
       el.textContent = "Demo data";
       el.classList.add("warn");
     } else if (!s.available) {
-      el.textContent = "Service unavailable";
-      el.classList.add("bad");
+      el.textContent = s.setup_enabled ? "Setup required" : "Service unavailable";
+      el.classList.add(s.setup_enabled ? "warn" : "bad");
     } else {
       el.textContent = `${String(s.primary_model || "").split("/").pop()} + ${String(s.verifier_model || "").split("/").pop()}`;
+    }
+    if (autoOnboard && s.setup_enabled && s.needs_onboarding && !window.location.pathname.startsWith("/r/")) {
+      let dismissed = false;
+      try { dismissed = sessionStorage.getItem("priorart_onboarding_dismissed") === "1"; } catch {}
+      if (!dismissed) openSetupWizard(0);
     }
   } catch {
     el.classList.remove("hidden");
     el.classList.add("bad");
     el.innerHTML = 'Server unreachable <button type="button" class="linkbtn" id="retry-status">Retry</button>';
-    $("#retry-status").onclick = loadStatus;
+    $("#retry-status").onclick = () => loadStatus();
   }
 }
 
@@ -1434,6 +1829,352 @@ $("#del-go").onclick = async () => {
   }
 };
 
+// ---------- Onboarding & Settings Wizard ----------
+const setupDialog = $("#setup-dialog");
+const WIZ_STEP_COUNT = 5;
+
+function setWizError(msg) {
+  const el = $("#wiz-err");
+  if (!msg) {
+    el.classList.add("hidden");
+    el.textContent = "";
+    return;
+  }
+  el.textContent = msg;
+  el.classList.remove("hidden");
+  el.scrollIntoView({behavior: scrollBehavior(), block: "nearest"});
+}
+
+function modelFamilyOf(m) {
+  return String(m || "").trim().split("/")[0].toLowerCase();
+}
+
+function updateFamilyNote() {
+  const p = $("#w-primary-model").value.trim();
+  const v = $("#w-verifier-model").value.trim();
+  const pf = modelFamilyOf(p);
+  const vf = modelFamilyOf(v);
+  const el = $("#w-family-note");
+  el.classList.remove("warn");
+  if (!p || !v) {
+    el.classList.add("warn");
+    el.textContent = "Enter both a writer model and a verifier model.";
+  } else if (pf && pf === vf) {
+    el.classList.add("warn");
+    el.textContent = `⚠ Writer and verifier share the same model family (${pf}). Choosing two different families (e.g. meta-llama + Qwen) catches more unsupported claims.`;
+  } else {
+    el.textContent = `✓ Cross-family verification active (${pf || "writer"} writer + ${vf || "verifier"} verifier).`;
+  }
+}
+
+function populateModelChoices(writerPresets, verifierPresets) {
+  const allWriter = [...new Set([...(writerPresets || []), ...discoveredModels])];
+  const allVerifier = [...new Set([...(verifierPresets || []), ...discoveredModels])];
+  $("#writer-model-list").innerHTML = allWriter.map(m => `<option value="${esc(m)}"></option>`).join("");
+  $("#verifier-model-list").innerHTML = allVerifier.map(m => `<option value="${esc(m)}"></option>`).join("");
+
+  $("#w-writer-presets").innerHTML = (writerPresets || []).map(m =>
+    `<button type="button" class="wiz-preset" data-set-model="w-primary-model" data-val="${esc(m)}">${esc(m.split("/").pop())}</button>`
+  ).join("");
+  $("#w-verifier-presets").innerHTML = (verifierPresets || []).map(m =>
+    `<button type="button" class="wiz-preset" data-set-model="w-verifier-model" data-val="${esc(m)}">${esc(m.split("/").pop())}</button>`
+  ).join("");
+
+  document.querySelectorAll("[data-set-model]").forEach(btn => {
+    btn.onclick = () => {
+      const target = document.getElementById(btn.dataset.setModel);
+      if (target) target.value = btn.dataset.val;
+      updateFamilyNote();
+    };
+  });
+}
+
+function syncDemoFieldState() {
+  const isDemo = $("#w-fake").checked;
+  $("#w-live-fields").classList.toggle("wiz-dimmed", isDemo);
+}
+
+function collectWizardPayload() {
+  const intVal = (id) => {
+    const raw = $(id).value.trim();
+    return raw === "" ? null : Number(raw);
+  };
+  return {
+    fake: $("#w-fake").checked,
+    nebius_api_key: $("#w-nebius-key").value.trim() || null,
+    tavily_api_key: $("#w-tavily-key").value.trim() || null,
+    clear_nebius_key: $("#w-clear-nebius").checked,
+    clear_tavily_key: $("#w-clear-tavily").checked,
+    nebius_base_url: $("#w-nebius-url").value.trim(),
+    primary_model: $("#w-primary-model").value.trim(),
+    verifier_model: $("#w-verifier-model").value.trim(),
+    max_candidates: intVal("#w-max-candidates"),
+    results_per_query: intVal("#w-results-per-query"),
+    page_chars: intVal("#w-page-chars"),
+    check_deadline_s: intVal("#w-check-deadline"),
+    workers: intVal("#w-workers"),
+    search_concurrency: intVal("#w-search-conc"),
+    model_concurrency: intVal("#w-model-conc"),
+    max_concurrent_checks: intVal("#w-max-conc-checks"),
+    cache_enabled: $("#w-cache-enabled").checked,
+    rate_limit_10m: intVal("#w-rl-10m"),
+    rate_limit_day: intVal("#w-rl-day"),
+    rate_limit_global_hour: intVal("#w-rl-global"),
+    daily_budget_credits: intVal("#w-budget-credits"),
+    daily_budget_output_tokens: intVal("#w-budget-tokens"),
+    allowed_hosts: $("#w-allowed-hosts").value.trim(),
+    public_origin: $("#w-public-origin").value.trim(),
+    trust_proxy_headers: $("#w-trust-proxy").checked,
+    db_path: $("#w-db-path").value.trim(),
+    cache_path: $("#w-cache-path").value.trim(),
+    runs_dir: $("#w-runs-dir").value.trim()
+  };
+}
+
+function renderWizardReview() {
+  const p = collectWizardPayload();
+  const keySummary = (entered, clearFlag, isSet, masked) => {
+    if (clearFlag) return "Will clear saved key";
+    if (entered) return "New key entered (will save masked)";
+    if (isSet) return `Keeping existing (${masked || "***"})`;
+    return "Not set";
+  };
+  const rows = [
+    ["Mode", p.fake ? "Offline Demo Mode (PRIORART_FAKE=1)" : "Live APIs (Nebius + Tavily)"],
+    ["Nebius API Key", keySummary(p.nebius_api_key, p.clear_nebius_key, setupState?.nebius_api_key_set, setupState?.nebius_api_key_masked)],
+    ["Tavily API Key", keySummary(p.tavily_api_key, p.clear_tavily_key, setupState?.tavily_api_key_set, setupState?.tavily_api_key_masked)],
+    ["Nebius Base URL", p.nebius_base_url || "—"],
+    ["Writer Model", p.primary_model || "—"],
+    ["Verifier Model", p.verifier_model || "—"],
+    ["Pipeline", `${p.max_candidates} projects · ${p.results_per_query} results/query · ${p.page_chars} chars/page · ${p.check_deadline_s}s deadline`],
+    ["Concurrency & Cache", `${p.workers} workers · ${p.search_concurrency} search · ${p.model_concurrency} LLM · ${p.max_concurrent_checks} max checks · cache ${p.cache_enabled ? "on" : "off"}`],
+    ["Rate Limits", `${p.rate_limit_10m} / 10m · ${p.rate_limit_day} / day · ${p.rate_limit_global_hour} global / hr`],
+    ["Daily Budgets", `${p.daily_budget_credits} Tavily credits · ${p.daily_budget_output_tokens} output tokens`],
+    ["Network & Proxy", `Extra hosts: ${p.allowed_hosts || "(local only)"} · Origin: ${p.public_origin || "(auto)"} · Proxy headers: ${p.trust_proxy_headers ? "on" : "off"}`],
+    ["Storage Paths", `DB: ${p.db_path} | Cache: ${p.cache_path} | Runs: ${p.runs_dir}`]
+  ];
+  $("#w-review-table").innerHTML = "<tbody>" + rows.map(([k, v]) =>
+    `<tr><th>${esc(k)}</th><td>${esc(v)}</td></tr>`
+  ).join("") + "</tbody>";
+}
+
+function goWizStep(step) {
+  wizStep = Math.max(0, Math.min(WIZ_STEP_COUNT - 1, step));
+  setWizError("");
+  document.querySelectorAll(".wiz-panel").forEach(el => {
+    el.classList.toggle("hidden", Number(el.dataset.panel) !== wizStep);
+  });
+  document.querySelectorAll(".wiz-step-btn").forEach(btn => {
+    const idx = Number(btn.dataset.step);
+    btn.classList.toggle("active", idx === wizStep);
+    btn.classList.toggle("done", idx < wizStep);
+    btn.setAttribute("aria-current", idx === wizStep ? "step" : "false");
+  });
+  $("#wiz-prev").disabled = wizStep === 0;
+  $("#wiz-next").classList.toggle("hidden", wizStep === WIZ_STEP_COUNT - 1);
+  $("#wiz-save").classList.toggle("hidden", wizStep !== WIZ_STEP_COUNT - 1);
+  if (wizStep === WIZ_STEP_COUNT - 1) renderWizardReview();
+}
+
+function fillWizardForm(cfg) {
+  setupState = cfg;
+  $("#w-fake").checked = Boolean(cfg.fake);
+  $("#w-nebius-key").value = "";
+  $("#w-tavily-key").value = "";
+  $("#w-clear-nebius").checked = false;
+  $("#w-clear-tavily").checked = false;
+
+  const nb = $("#w-nebius-badge");
+  nb.className = "wiz-badge " + (cfg.nebius_api_key_set ? "ok" : "warn");
+  nb.textContent = cfg.nebius_api_key_set ? `Saved (${cfg.nebius_api_key_masked})` : "Not set";
+  $("#w-clear-nebius-wrap").classList.toggle("hidden", !cfg.nebius_api_key_set);
+
+  const tb = $("#w-tavily-badge");
+  tb.className = "wiz-badge " + (cfg.tavily_api_key_set ? "ok" : "warn");
+  tb.textContent = cfg.tavily_api_key_set ? `Saved (${cfg.tavily_api_key_masked})` : "Not set";
+  $("#w-clear-tavily-wrap").classList.toggle("hidden", !cfg.tavily_api_key_set);
+
+  $("#w-nebius-url").value = cfg.nebius_base_url || "https://api.tokenfactory.nebius.com/v1/";
+  $("#w-primary-model").value = cfg.primary_model || "";
+  $("#w-verifier-model").value = cfg.verifier_model || "";
+  $("#w-max-candidates").value = cfg.max_candidates ?? 8;
+  $("#w-results-per-query").value = cfg.results_per_query ?? 5;
+  $("#w-page-chars").value = cfg.page_chars ?? 9000;
+  $("#w-check-deadline").value = cfg.check_deadline_s ?? 240;
+  $("#w-workers").value = cfg.workers ?? 6;
+  $("#w-search-conc").value = cfg.search_concurrency ?? 14;
+  $("#w-model-conc").value = cfg.model_concurrency ?? 8;
+  $("#w-max-conc-checks").value = cfg.max_concurrent_checks ?? 4;
+  $("#w-cache-enabled").checked = cfg.cache_enabled !== false;
+  $("#w-rl-10m").value = cfg.rate_limit_10m ?? 3;
+  $("#w-rl-day").value = cfg.rate_limit_day ?? 15;
+  $("#w-rl-global").value = cfg.rate_limit_global_hour ?? 60;
+  $("#w-budget-credits").value = cfg.daily_budget_credits ?? 5000;
+  $("#w-budget-tokens").value = cfg.daily_budget_output_tokens ?? 2000000;
+  $("#w-allowed-hosts").value = cfg.allowed_hosts || "";
+  $("#w-public-origin").value = cfg.public_origin || "";
+  $("#w-trust-proxy").checked = Boolean(cfg.trust_proxy_headers);
+  $("#w-db-path").value = cfg.db_path || "";
+  $("#w-cache-path").value = cfg.cache_path || "";
+  $("#w-runs-dir").value = cfg.runs_dir || "";
+
+  $("#w-test-results").classList.add("hidden");
+  $("#w-test-results").innerHTML = "";
+  populateModelChoices(cfg.recommended_writer_models, cfg.recommended_verifier_models);
+  updateFamilyNote();
+  syncDemoFieldState();
+}
+
+async function openSetupWizard(startStep = 0) {
+  setWizError("");
+  try {
+    const cfg = await api("/api/setup");
+    fillWizardForm(cfg);
+    goWizStep(startStep);
+    if (!setupDialog.open) setupDialog.showModal();
+  } catch (e) {
+    showToast("Couldn't open setup wizard: " + e.message);
+  }
+}
+
+function closeSetupWizard() {
+  if (setupDialog.open) setupDialog.close();
+  try { sessionStorage.setItem("priorart_onboarding_dismissed", "1"); } catch {}
+}
+
+$("#open-setup").onclick = () => openSetupWizard(0);
+$("#banner-open-setup").onclick = () => openSetupWizard(0);
+$("#banner-enable-demo").onclick = async () => {
+  try {
+    await api("/api/setup", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({fake: true})
+    });
+    await loadStatus();
+    showToast("Offline demo mode enabled and saved to .env.");
+  } catch (e) {
+    showToast("Couldn't enable demo mode: " + e.message);
+  }
+};
+$("#wiz-close").onclick = closeSetupWizard;
+setupDialog.addEventListener("cancel", () => {
+  try { sessionStorage.setItem("priorart_onboarding_dismissed", "1"); } catch {}
+});
+document.querySelectorAll(".wiz-step-btn").forEach(btn => {
+  btn.onclick = () => goWizStep(Number(btn.dataset.step));
+});
+$("#wiz-prev").onclick = () => goWizStep(wizStep - 1);
+$("#wiz-next").onclick = () => goWizStep(wizStep + 1);
+$("#w-fake").addEventListener("change", syncDemoFieldState);
+$("#w-primary-model").addEventListener("input", updateFamilyNote);
+$("#w-verifier-model").addEventListener("input", updateFamilyNote);
+
+document.querySelectorAll("[data-eye]").forEach(btn => {
+  btn.onclick = () => {
+    const inp = document.getElementById(btn.dataset.eye);
+    if (!inp) return;
+    const showing = inp.type === "text";
+    inp.type = showing ? "password" : "text";
+    btn.textContent = showing ? "Show" : "Hide";
+  };
+});
+
+$("#w-test-btn").onclick = async () => {
+  const btn = $("#w-test-btn");
+  const box = $("#w-test-results");
+  setWizError("");
+  btn.disabled = true;
+  btn.textContent = "Testing…";
+  box.classList.remove("hidden");
+  box.textContent = "Testing Nebius Token Factory and Tavily connections…";
+  try {
+    const res = await api("/api/setup/test", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({
+        nebius_api_key: $("#w-nebius-key").value.trim() || null,
+        tavily_api_key: $("#w-tavily-key").value.trim() || null,
+        nebius_base_url: $("#w-nebius-url").value.trim() || null,
+        primary_model: $("#w-primary-model").value.trim() || null,
+        verifier_model: $("#w-verifier-model").value.trim() || null
+      })
+    });
+    const neb = res.nebius || {};
+    const tav = res.tavily || {};
+    if (Array.isArray(neb.models) && neb.models.length) {
+      discoveredModels = neb.models;
+      populateModelChoices(setupState?.recommended_writer_models, setupState?.recommended_verifier_models);
+    }
+    const line = (label, item) => {
+      const cls = item.ok ? "ok" : (item.tested ? "bad" : "warn");
+      const sym = item.ok ? "✓ OK" : (item.tested ? "✗ Failed" : "Not tested");
+      return `<div class="wiz-test-line"><span class="wiz-badge ${cls}">${sym}</span><b>${esc(label)}:</b> <span>${esc(item.message || "")}</span></div>`;
+    };
+    box.innerHTML = line("Nebius", neb) + line("Tavily", tav);
+  } catch (e) {
+    box.innerHTML = `<div class="wiz-test-line"><span class="wiz-badge bad">✗ Error</span><span>${esc(e.message)}</span></div>`;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Test API Connections";
+  }
+};
+
+$("#wiz-reset").onclick = () => {
+  $("#w-nebius-url").value = "https://api.tokenfactory.nebius.com/v1/";
+  $("#w-primary-model").value = "meta-llama/Llama-3.3-70B-Instruct";
+  $("#w-verifier-model").value = "Qwen/Qwen3-235B-A22B-Instruct-2507";
+  $("#w-max-candidates").value = 8;
+  $("#w-results-per-query").value = 5;
+  $("#w-page-chars").value = 9000;
+  $("#w-check-deadline").value = 240;
+  $("#w-workers").value = 6;
+  $("#w-search-conc").value = 14;
+  $("#w-model-conc").value = 8;
+  $("#w-max-conc-checks").value = 4;
+  $("#w-cache-enabled").checked = true;
+  $("#w-rl-10m").value = 3;
+  $("#w-rl-day").value = 15;
+  $("#w-rl-global").value = 60;
+  $("#w-budget-credits").value = 5000;
+  $("#w-budget-tokens").value = 2000000;
+  $("#w-allowed-hosts").value = "";
+  $("#w-public-origin").value = "";
+  $("#w-trust-proxy").checked = false;
+  updateFamilyNote();
+  if (wizStep === WIZ_STEP_COUNT - 1) renderWizardReview();
+  showToast("Reset non-secret settings to defaults (click Save & Apply to persist).");
+};
+
+$("#wiz-save").onclick = async () => {
+  const btn = $("#wiz-save");
+  setWizError("");
+  btn.disabled = true;
+  btn.textContent = "Saving…";
+  try {
+    const res = await api("/api/setup", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify(collectWizardPayload())
+    });
+    fillWizardForm(res);
+    closeSetupWizard();
+    await loadStatus();
+    const restart = Array.isArray(res.restart_required) && res.restart_required.length
+      ? ` Restart server to apply: ${res.restart_required.join(", ")}.`
+      : " Applied live immediately.";
+    const missingNote = (!res.fake && Array.isArray(res.missing_keys) && res.missing_keys.length)
+      ? ` Still missing: ${res.missing_keys.join(", ")}.`
+      : "";
+    showToast(`Settings saved to ${res.env_file || ".env"}.${restart}${missingNote}`);
+  } catch (e) {
+    setWizError(e.message || "Couldn't save settings.");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Save & Apply";
+  }
+};
+
 window.addEventListener("popstate", () => {
   const m = window.location.pathname.match(/^\/r\/([0-9A-Za-z]{10})$/);
   if (m) openReportById(m[1], {pushUrl: false});
@@ -1441,7 +2182,7 @@ window.addEventListener("popstate", () => {
 
 // Boot
 restoreDraft();
-loadStatus();
+loadStatus({autoOnboard: true});
 loadPast();
 const initialReport = window.location.pathname.match(/^\/r\/([0-9A-Za-z]{10})$/);
 if (initialReport) openReportById(initialReport[1], {pushUrl: false});

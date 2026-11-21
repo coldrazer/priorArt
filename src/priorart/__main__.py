@@ -5,6 +5,7 @@
   python src/agent.py --file idea.txt
   python src/agent.py "idea" --simulate search_down # demo the failure case
   python src/agent.py models                        # list Token Factory models your key can use
+  python src/agent.py setup                         # interactive onboarding wizard for API keys & settings
   python src/agent.py config check                  # validate and print effective settings (masked)
   python src/agent.py serve [--port 8000]           # web UI
 """
@@ -17,7 +18,7 @@ from pathlib import Path
 from typing import Any
 
 SCORE = {0: "·", 1: "◐", 2: "●"}
-COMMANDS = {"run", "models", "serve", "config"}
+COMMANDS = {"run", "models", "serve", "config", "setup", "onboard"}
 
 
 def _print_event(kind: str, d: dict[str, Any]) -> None:
@@ -113,12 +114,20 @@ def main(argv: list[str] | None = None) -> int:
     run.add_argument("--quiet", action="store_true", help="no progress output")
     run.add_argument("--simulate", choices=["search_down", "extract_down"], help="fake a Tavily outage (failure demo)")
     sub.add_parser("models", help="list models available to your Token Factory key")
+    stp = sub.add_parser("setup", aliases=["onboard"], help="interactive onboarding wizard for API keys & settings")
+    stp.add_argument("--env-file", help="target .env file path (default: repo .env)")
     cfg = sub.add_parser("config", help="configuration utilities")
     cfg.add_argument("action", choices=["check"], help="validate and print effective settings (secrets masked)")
     srv = sub.add_parser("serve", help="start the web UI")
     srv.add_argument("--host", default="127.0.0.1")
     srv.add_argument("--port", type=int, default=8000)
     a = ap.parse_args(argv)
+
+    if a.cmd in ("setup", "onboard"):
+        from .onboarding import run_cli_wizard
+
+        target = Path(a.env_file) if a.env_file else None
+        return run_cli_wizard(env_path=target)
 
     from . import ConfigError, Settings, build, close_shared_runtime
 

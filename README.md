@@ -13,8 +13,8 @@
   <img src="https://img.shields.io/badge/version-0.2.0-3dd68c?style=flat" alt="Version 0.2.0" />
   <img src="https://img.shields.io/badge/python-3.11%2B-3776ab?style=flat&logo=python&logoColor=white" alt="Python 3.11+" />
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-8ab4ff?style=flat" alt="MIT License" /></a>
-  <img src="https://img.shields.io/badge/tests-215%20passing-3dd68c?style=flat" alt="215 tests passing" />
-  <img src="https://img.shields.io/badge/coverage-86%25-3dd68c?style=flat" alt="86% coverage" />
+  <img src="https://img.shields.io/badge/tests-224%20passing-3dd68c?style=flat" alt="224 tests passing" />
+  <img src="https://img.shields.io/badge/coverage-87%25-3dd68c?style=flat" alt="87% coverage" />
   <img src="https://img.shields.io/badge/ruff%20%2B%20mypy-0%20errors-8ab4ff?style=flat" alt="Ruff and Mypy clean" />
   <img src="https://img.shields.io/badge/SQLite-STRICT%20%2F%20WAL-f5b855?style=flat&logo=sqlite&logoColor=white" alt="SQLite STRICT WAL" />
 </p>
@@ -138,9 +138,9 @@ Tested against synthetic production volume (**100 owners · 400 reports · 12,00
 |---|---|---|
 | **Bytecode compile** | `python -m compileall -q src scripts tests` | **PASS** |
 | **Lint & style** | `ruff check src scripts tests` | **0 errors** |
-| **Static typing** | `mypy src/priorart` | **0 errors** (20 modules) |
-| **Automated tests** | `pytest -q` | **215 passed** |
-| **Code coverage** | `coverage report --fail-under=85` | **86%** (3,750 stmts) |
+| **Static typing** | `mypy src/priorart` | **0 errors** (21 modules) |
+| **Automated tests** | `pytest -q` | **224 passed** |
+| **Code coverage** | `coverage report --fail-under=85` | **87%** (4,233 stmts) |
 | **Schema & migration drift** | `python scripts/db.py check` | **0 drift** (`0001`–`0005`, 62 objects) |
 | **Supply chain** | `pip install --require-hashes -r requirements.txt` | **SHA-256 locked** + SHA-pinned GitHub Actions |
 
@@ -176,6 +176,18 @@ python src/agent.py "Your research question here"     # e.g. "Has anyone built a
 python src/agent.py serve                             # web UI at http://127.0.0.1:8000
 ```
 <!-- /AUTO:setup -->
+
+### Interactive Onboarding & Settings Wizard
+
+Configure API keys and every setting without editing `.env` by hand — available in both the **Web UI** and the **CLI**:
+
+- **Web UI Wizard (5 steps):** Start `python src/agent.py serve` and open `http://127.0.0.1:8000`. On first run (or anytime via **⚙ Setup & Settings**), the wizard walks you through:
+  1. **API Keys & Mode:** Enter `NEBIUS_API_KEY` & `TAVILY_API_KEY` (masked, write-only, with live **Test API Connections** verification) or toggle **Offline Demo Mode**.
+  2. **Cross-Family Models:** Choose writer & verifier models from curated presets or live-discovered Nebius models, with real-time cross-family verification warnings.
+  3. **Pipeline & Performance:** Tune candidates, results/query, page char limit, concurrency, deadlines, and SQLite API caching.
+  4. **Limits, Budgets & Paths:** Configure per-owner/global rate limits, daily credit & output-token ceilings, allowed hosts, proxy headers, and storage paths.
+  5. **Review & Apply:** Saves atomically to `.env` with owner-only **`0600`** permissions and hot-reloads the running server immediately. *(Disabled automatically when `PRIORART_ENV=production`, and locked to `localhost`.)*
+- **CLI Wizard:** Run `python src/agent.py setup` (or `onboard`) for an interactive terminal wizard using masked `getpass` key prompts.
 
 ### Zero-Key Offline Demo & CLI Flags
 
@@ -266,6 +278,7 @@ In the web UI, select **Failure demo: Tavily search down** or **Failure demo: pa
 | `/api/checks/{id}/events` | `GET` | Async Server-Sent Events stream with `Last-Event-ID` replay & 15 s heartbeats |
 | `/api/reports` & `/api/reports/{id}` | `GET` / `DELETE` | Owner-scoped report history, detail JSON, Markdown download (`/report.md`), soft-delete & `/restore` |
 | `/api/me/export` & `/api/me` | `GET` / `DELETE` | GDPR-style owner data export (JSON) and full owner data erasure |
+| `/api/setup` & `/api/setup/test` | `GET` / `POST` | Local-only onboarding & settings wizard + live API key test (disabled in production, `0600` `.env`, hot-reload) |
 | `/health/live`, `/health/ready`, `/version` | `GET` | Liveness probe, SQLite/migration readiness check, and build version |
 
 ### Security Controls
@@ -306,11 +319,11 @@ There are no logins or passwords. An owner is an anonymous browser cookie token 
 
 ```text
 priorArt/
-├── src/priorart/           # Core Python package (pipeline, llm, search, cache, store, server, resilience, log)
-│   └── static/index.html   # Zero-inline-style, WCAG AA single-page web app
+├── src/priorart/           # Core Python package (pipeline, llm, search, cache, store, server, onboarding, resilience, log)
+│   └── static/index.html   # Zero-inline-style, WCAG AA single-page web app + 5-step Setup Wizard
 ├── migrations/             # Reversible SQLite migrations (0001–0005, up & down)
 ├── scripts/                # CLI ops: db.py, seed.py, backup.py, data.py, explain_queries.py, usage.py, submission.py
-├── tests/                  # 215 automated offline tests (86% coverage across pipeline, DB, lifecycle, security, API)
+├── tests/                  # 224 automated offline tests (87% coverage across pipeline, onboarding, DB, lifecycle, security, API)
 ├── docs/assets/            # Hero banner & dark-mode SVG architecture/benchmark charts
 ├── .github/                # SHA-pinned CI workflow & issue templates
 ├── Dockerfile              # Non-root Python 3.12 production container
@@ -329,7 +342,7 @@ priorArt/
 | Criterion | Weight | Where to Look |
 |---|---:|---|
 | **Sourced & verifiable answers** | 30% | [Overlap Preview](#live-product-preview), verbatim quote drawer, numbered `[n]` citations, visible rejected claims |
-| **Works end to end** | 25% | [Quick Start](#quick-start), `pytest -q` (215 passing), [Failure Modes](#honest-failure--insufficient-evidence-handling), Docker build |
+| **Works end to end** | 25% | [Quick Start](#quick-start), `pytest -q` (224 passing), [Failure Modes](#honest-failure--insufficient-evidence-handling), Docker build |
 | **Usefulness** | 20% | [Why Prior Art](#why-prior-art), open gap detection, 3 gap-targeted pivots with one-click follow-up checks |
 | **Agent design** | 15% | [Architecture](#architecture--two-stage-verification), [`src/priorart/pipeline.py`](src/priorart/pipeline.py), 2-stage deterministic + cross-family verification |
 | **Use of Token Factory & Tavily** | 10% | [Required Services](#required-services), [`src/priorart/llm.py`](src/priorart/llm.py), [`src/priorart/search.py`](src/priorart/search.py) |

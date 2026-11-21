@@ -4,6 +4,7 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass, field
 from pathlib import Path
+from urllib.parse import urlsplit
 
 ROOT = Path(__file__).resolve().parents[2]  # repo root (src/priorart/config.py -> repo)
 VERSION = "0.2.0"
@@ -192,6 +193,14 @@ class Settings:
             errors.append("PRIORART_PRIMARY_MODEL: must be non-empty")
         if not self.verifier_model.strip():
             errors.append("PRIORART_VERIFIER_MODEL: must be non-empty")
+
+        parsed_base = urlsplit(self.nebius_base_url.strip())
+        if parsed_base.scheme.lower() not in ("http", "https") or not parsed_base.netloc:
+            errors.append(f"NEBIUS_BASE_URL={self.nebius_base_url!r}: must be a valid http:// or https:// URL")
+        if self.public_origin:
+            parsed_orig = urlsplit(self.public_origin.strip())
+            if parsed_orig.scheme.lower() not in ("http", "https") or not parsed_orig.netloc:
+                errors.append(f"PRIORART_PUBLIC_ORIGIN={self.public_origin!r}: must be a valid http:// or https:// URL")
 
         if _is_unsafe_dir(self.runs_dir):
             errors.append(f"PRIORART_RUNS_DIR={self.runs_dir!r}: cannot be filesystem root or home directory")
