@@ -1,0 +1,19 @@
+name: Feature Request
+description: Propose a new source, verification check, or UI capability
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem statement
+      description: What builder/researcher workflow problem does this solve?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Describe the behavior, trade-offs, and any cost/latency impact.
+    validations:
+      required: true
