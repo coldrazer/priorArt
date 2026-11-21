@@ -1,0 +1,56 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "prior-art"
+version = "0.2.0"
+description = "Research agent that checks whether an idea already exists with double-verified source quotes."
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.11"
+dependencies = [
+  "openai>=1.40",
+  "tavily-python>=0.7",
+  "fastapi>=0.110",
+  "uvicorn>=0.29",
+  "python-dotenv>=1.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8",
+  "httpx>=0.27",
+  "ruff>=0.8",
+  "mypy>=1.13",
+  "coverage>=7.6",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+target-version = "py312"
+line-length = 120
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W", "B"]
+ignore = ["E501", "E702", "E731", "B008"]
+
+[tool.ruff.lint.per-file-ignores]
+"src/agent.py" = ["E402"]
+"scripts/*.py" = ["E402"]
+"tests/*.py" = ["E402", "E701"]
+
+[tool.mypy]
+python_version = "3.12"
+warn_unused_ignores = true
+check_untyped_defs = false
+
+[[tool.mypy.overrides]]
+module = ["tavily", "tavily.*"]
+ignore_missing_imports = true

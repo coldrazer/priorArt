@@ -1,0 +1,35 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: "3.12"
+      - name: Install (pinned with hashes)
+        run: pip install --require-hashes -r requirements-dev.txt
+      - name: SQLite version
+        run: python -c "import sqlite3; print('SQLite', sqlite3.sqlite_version)"
+      - name: Compile check
+        run: python -m compileall -q src scripts tests
+      - name: Lint (ruff)
+        run: ruff check src scripts tests
+      - name: Type check (mypy)
+        run: mypy src/priorart
+      - name: Tests & coverage (offline, no API keys)
+        run: |
+          coverage run --source=src/priorart -m pytest -q
+          coverage report --fail-under=85
+      - name: Migrations — up, down, up, and drift from src/priorart/schema.sql
+        run: python scripts/db.py check
+      - name: Query plans — zero full-table scans
+        run: python scripts/explain_queries.py --owners 60 --reports-per-owner 3
