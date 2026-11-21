@@ -1,0 +1,12 @@
+.git
+.venv
+.env
+.cache
+.pytest_cache
+__pycache__
+*.pyc
+data/
+runs/
+.DS_Store
+*_PLAN.md
+DAY1_READINESS_20.md

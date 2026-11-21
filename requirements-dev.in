@@ -1,0 +1,6 @@
+-r requirements.in
+pytest>=8
+httpx>=0.27
+ruff>=0.8
+mypy>=1.13
+coverage>=7.6

@@ -1,0 +1,1450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prior Art — Has someone built this already?</title>
+<meta name="description" content="Check whether your product or hackathon idea already exists. Every overlap links to a quote verified against its source page.">
+<meta property="og:title" content="Prior Art — Has someone built this already?">
+<meta property="og:description" content="Feature-by-feature overlap grid with double-checked quotes, novelty score, open gaps, and pivots.">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230e1013'/%3E%3Crect x='6' y='6' width='8' height='8' rx='2' fill='%23ff8a8d'/%3E%3Crect x='18' y='6' width='8' height='8' rx='2' fill='%237ff0b8'/%3E%3Crect x='6' y='18' width='8' height='8' rx='2' fill='%23f5b855'/%3E%3Crect x='18' y='18' width='8' height='8' rx='2' fill='%237ff0b8'/%3E%3C/svg%3E">
+<style>
+  :root {
+    --surface-0: #0e1013;
+    --surface-1: #161a1f;
+    --surface-2: #1c2128;
+    --border: #2a313a;
+    --ink-1: #eef1f5;
+    --ink-2: #9aa5b4;
+    --taken-bg: rgba(229, 72, 77, 0.20);
+    --taken-ink: #ff8a8d;
+    --taken-border: rgba(255, 138, 141, 0.45);
+    --partial-bg: rgba(240, 164, 58, 0.18);
+    --partial-ink: #f5b855;
+    --partial-border: rgba(245, 184, 85, 0.45);
+    --open-bg: rgba(61, 214, 140, 0.12);
+    --open-ink: #7ff0b8;
+    --open-solid: #3dd68c;
+    --open-border: rgba(127, 240, 184, 0.40);
+    --cut-bg: rgba(148, 163, 184, 0.14);
+    --cut-ink: #c1c8d3;
+    --unchecked-bg: rgba(122, 162, 255, 0.15);
+    --unchecked-ink: #a5c4ff;
+    --accent: #8ab4ff;
+    --btn-primary-ink: #06140d;
+    --scrim: rgba(6, 8, 11, 0.68);
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    --tap: 44px;
+    --radius-s: 8px;
+    --radius-m: 10px;
+    --radius-l: 14px;
+    --fs-xs: 12px;
+    --fs-s: 13px;
+    --fs-m: 15px;
+    --fs-l: 18px;
+    --fs-xl: 24px;
+    --fs-display: 56px;
+  }
+  * { box-sizing: border-box; }
+  html, body { overflow-x: clip; }
+  body {
+    margin: 0;
+    background: var(--surface-0);
+    color: var(--ink-1);
+    font: var(--fs-m)/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  body.modal-open { overflow: hidden; }
+  a { color: var(--accent); }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  :focus:not(:focus-visible) { outline: none; }
+  .hidden { display: none !important; }
+  .sr-only {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+  }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 24px 20px 80px; }
+
+  header { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  .brand { text-decoration: none; color: inherit; }
+  h1 { font-size: 28px; margin: 0; letter-spacing: -.02em; }
+  h1 span { color: var(--open-ink); }
+  .tag { color: var(--ink-2); font-size: var(--fs-m); }
+  .pill {
+    margin-left: auto;
+    font: var(--fs-xs) var(--mono);
+    color: var(--ink-2);
+    border: 1px solid var(--border);
+    border-radius: 99px;
+    padding: 5px 12px;
+    min-height: 28px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .pill.warn { color: var(--partial-ink); border-color: var(--partial-border); }
+  .pill.bad { color: var(--taken-ink); border-color: var(--taken-border); }
+
+  .card {
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-l);
+    padding: 18px;
+    margin-top: 18px;
+  }
+  .field-label { display: block; font-size: var(--fs-m); font-weight: 600; margin-bottom: 6px; }
+  textarea {
+    width: 100%;
+    min-height: 104px;
+    max-height: 320px;
+    resize: vertical;
+    background: var(--surface-0);
+    color: var(--ink-1);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-m);
+    padding: 12px 14px;
+    font: inherit;
+  }
+  textarea[aria-invalid="true"] { border-color: var(--taken-ink); }
+  .field-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    margin-top: 6px;
+    font-size: var(--fs-s);
+    color: var(--ink-2);
+    flex-wrap: wrap;
+  }
+  .field-err { color: var(--taken-ink); font-size: var(--fs-s); margin-top: 6px; font-weight: 500; }
+  .char-count { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+  .char-count.over { color: var(--taken-ink); font-weight: 700; }
+
+  .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 12px; }
+  .row-flush { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 10px; }
+  button, .btn {
+    font: inherit;
+    cursor: pointer;
+    border-radius: var(--radius-m);
+    border: 1px solid var(--border);
+    background: var(--surface-2);
+    color: var(--ink-1);
+    padding: 8px 14px;
+    min-height: var(--tap);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    text-decoration: none;
+  }
+  button:hover:not(:disabled), .btn:hover { border-color: var(--accent); }
+  button.primary {
+    background: var(--open-solid);
+    color: var(--btn-primary-ink);
+    border-color: var(--open-solid);
+    font-weight: 650;
+    padding: 9px 20px;
+  }
+  button.primary:disabled { background: var(--surface-2); color: var(--ink-1); border-color: var(--accent); opacity: 1; cursor: wait; }
+  button.danger { background: var(--taken-bg); color: var(--taken-ink); border-color: var(--taken-border); }
+  button.linkbtn {
+    background: transparent; border: none; color: var(--accent); padding: 6px 8px;
+    min-height: 36px; text-decoration: underline; font-size: var(--fs-s);
+  }
+  button:disabled { opacity: .6; cursor: not-allowed; }
+  .chip { font-size: var(--fs-s); padding: 6px 14px; border-radius: 99px; color: var(--ink-1); }
+  select {
+    background: var(--surface-2);
+    color: var(--ink-1);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-m);
+    padding: 8px 12px;
+    min-height: var(--tap);
+    font: inherit;
+    max-width: 100%;
+  }
+  .push-right { margin-left: auto; }
+  select.sim { font-size: var(--fs-s); color: var(--ink-2); }
+  select.past { max-width: 340px; }
+
+  .banner {
+    margin-top: 16px;
+    border: 1px solid var(--partial-border);
+    background: var(--partial-bg);
+    color: var(--ink-1);
+    border-radius: var(--radius-m);
+    padding: 12px 16px;
+    font-size: var(--fs-m);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .banner.bad { border-color: var(--taken-border); background: var(--taken-bg); }
+  .banner.info { border-color: var(--accent); background: var(--unchecked-bg); }
+  .banner-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  .stages { display: flex; gap: 6px; flex-wrap: wrap; }
+  .stage {
+    font-size: var(--fs-s);
+    padding: 5px 10px;
+    border-radius: 99px;
+    border: 1px solid var(--border);
+    color: var(--ink-2);
+  }
+  .stage.on { color: var(--ink-1); border-color: var(--accent); font-weight: 600; }
+  .stage.done { color: var(--open-ink); border-color: var(--open-border); }
+  .stage.done::before { content: "✓ "; }
+  .stage.skip { opacity: .55; text-decoration: line-through; }
+  .stage.fail { color: var(--taken-ink); border-color: var(--taken-border); }
+  .stage.fail::before { content: "✗ "; }
+  .prog-meta {
+    display: flex; gap: 14px; align-items: center; flex-wrap: wrap;
+    margin-top: 10px; font-size: var(--fs-s); color: var(--ink-2);
+  }
+  .elapsed { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+  details.logbox { margin-top: 10px; }
+  details.logbox summary { cursor: pointer; font-size: var(--fs-s); color: var(--ink-2); padding: 6px 0; }
+  #log {
+    margin-top: 6px; max-height: 180px; overflow: auto;
+    font: var(--fs-xs)/1.6 var(--mono); color: var(--ink-2);
+    background: var(--surface-0); border-radius: var(--radius-s); padding: 10px 12px;
+  }
+  #log .w { color: var(--partial-ink); }
+  #log .e { color: var(--taken-ink); }
+
+  .sk {
+    background: linear-gradient(90deg, var(--surface-2) 25%, var(--border) 50%, var(--surface-2) 75%);
+    background-size: 200% 100%;
+    animation: sk-shimmer 1.2s linear infinite;
+    border-radius: var(--radius-s);
+  }
+  @keyframes sk-shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+  .sk-line { height: 18px; margin-bottom: 10px; width: 75%; }
+  .sk-line-sm { height: 14px; width: 45%; }
+  .sk-score { height: 64px; width: 110px; margin: 0 auto 12px; }
+  .sk-row { height: 44px; margin-bottom: 6px; width: 100%; }
+
+  .top { display: grid; grid-template-columns: 210px 1fr; gap: 22px; align-items: start; }
+  .score { text-align: center; }
+  .score .n { font-size: var(--fs-display); font-weight: 750; line-height: 1; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+  .score .n.nov-open { color: var(--open-ink); }
+  .score .n.nov-partial { color: var(--partial-ink); }
+  .score .n.nov-taken { color: var(--taken-ink); }
+  .score .n.nov-none { color: var(--ink-2); }
+  .score .l { color: var(--ink-2); font-size: var(--fs-xs); text-transform: uppercase; letter-spacing: .08em; margin-top: 8px; }
+  progress.novbar {
+    width: 100%; height: 8px; margin-top: 12px;
+    border: none; border-radius: 99px; background: var(--taken-bg); overflow: hidden;
+    appearance: none; -webkit-appearance: none;
+  }
+  progress.novbar::-webkit-progress-bar { background: var(--taken-bg); border-radius: 99px; }
+  progress.novbar::-webkit-progress-value { background: var(--open-solid); border-radius: 99px; }
+  progress.novbar::-moz-progress-bar { background: var(--open-solid); border-radius: 99px; }
+
+  .verdict { font-size: var(--fs-xl); font-weight: 650; line-height: 1.3; margin: 0; }
+  .sub { color: var(--ink-2); margin-top: 6px; font-size: var(--fs-m); }
+  .idea-checked {
+    margin-top: 12px; padding: 10px 12px; border-left: 3px solid var(--border);
+    background: var(--surface-0); border-radius: 0 var(--radius-s) var(--radius-s) 0;
+    font-size: var(--fs-s); color: var(--ink-2);
+  }
+  .idea-checked b { color: var(--ink-1); display: block; margin-bottom: 2px; }
+  .actions-bar { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+  .checks { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+  .check {
+    background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius-m);
+    padding: 8px 12px; font-size: var(--fs-s); text-align: left; display: block;
+    min-height: var(--tap); color: var(--ink-1);
+  }
+  .check b { font-size: var(--fs-l); display: block; font-variant-numeric: tabular-nums; }
+  .check.cut { border-color: var(--taken-border); }
+  .check.cut:hover { background: var(--taken-bg); }
+
+  h2 { font-size: var(--fs-l); color: var(--ink-1); margin: 0 0 10px; font-weight: 650; }
+  .eyebrow {
+    font-size: var(--fs-xs); text-transform: uppercase; letter-spacing: .08em;
+    color: var(--ink-2); display: block; margin-bottom: 2px;
+  }
+  .legend { display: flex; gap: 14px; font-size: var(--fs-xs); color: var(--ink-2); flex-wrap: wrap; }
+  .legend span { display: inline-flex; align-items: center; gap: 5px; }
+  .dot { display: inline-block; width: 10px; height: 10px; border-radius: 3px; }
+  .dot-taken { background: var(--taken-ink); }
+  .dot-partial { background: var(--partial-ink); }
+  .dot-open { background: var(--open-ink); }
+  .dot-cut { background: var(--cut-ink); }
+  .dot-unchecked { background: var(--unchecked-ink); }
+
+  .grid-hint { font-size: var(--fs-s); color: var(--ink-2); margin: 0 0 10px; }
+  .gridwrap { overflow-x: auto; position: relative; }
+  table.grid { border-collapse: separate; border-spacing: 4px; width: 100%; min-width: 680px; table-layout: fixed; }
+  .grid th { font-size: var(--fs-s); font-weight: 600; text-align: center; vertical-align: bottom; padding: 6px 4px; color: var(--ink-1); }
+  .grid th.open { color: var(--open-ink); }
+  .grid th .gap { display: block; font: var(--fs-xs) var(--mono); color: var(--open-ink); margin-bottom: 2px; }
+  .grid th.proj { text-align: left; width: 240px; }
+  .grid td.name { padding: 6px 8px 6px 0; vertical-align: middle; }
+  .grid td.name .pname {
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    font-size: var(--fs-m); font-weight: 600;
+  }
+  .grid td.name .cit { color: var(--ink-2); font: var(--fs-xs) var(--mono); margin-right: 4px; }
+  .grid td.name a {
+    display: block; font-size: var(--fs-xs); color: var(--ink-2); text-decoration: none;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px;
+  }
+  .grid td.name a:hover { color: var(--accent); text-decoration: underline; }
+  .badge {
+    font: var(--fs-xs) var(--mono); padding: 1px 6px; border-radius: 5px;
+    background: var(--surface-2); border: 1px solid var(--border); color: var(--ink-2); margin-left: 4px;
+  }
+  .flag {
+    display: inline-block; white-space: nowrap; font: var(--fs-xs) var(--mono); padding: 1px 6px;
+    border-radius: 5px; color: var(--partial-ink); border: 1px solid var(--partial-border);
+    margin-top: 3px; cursor: help;
+  }
+  .grid td.cell-td { padding: 0; }
+  .cellbtn {
+    width: 100%; min-height: var(--tap); padding: 6px 4px; border-radius: var(--radius-s);
+    border: 1px solid transparent; font-size: var(--fs-xs); font-weight: 650;
+    background: var(--open-bg); color: var(--open-ink);
+  }
+  .cellbtn:hover { border-color: var(--accent); }
+  .cellbtn.s2 { background: var(--taken-bg); color: var(--taken-ink); }
+  .cellbtn.s1 { background: var(--partial-bg); color: var(--partial-ink); }
+  .cellbtn.cut {
+    background: repeating-linear-gradient(135deg, transparent 0 6px, rgba(148, 163, 184, 0.14) 6px 12px), var(--cut-bg);
+    color: var(--cut-ink); text-decoration: line-through;
+  }
+  .cellbtn.unchecked {
+    background: var(--unchecked-bg); color: var(--unchecked-ink); border: 1px dashed var(--accent);
+  }
+  .cellbtn.unverified {
+    background: var(--partial-bg); color: var(--partial-ink); border: 1px dashed var(--partial-border);
+  }
+  .grid tr.cov td { border-top: 1px solid var(--border); padding-top: 6px; }
+  .cov-pill {
+    display: flex; align-items: center; justify-content: center; min-height: 32px;
+    border-radius: var(--radius-s); font-size: var(--fs-xs); font-weight: 650;
+    background: var(--open-bg); color: var(--open-ink);
+  }
+  .cov-pill.s2 { background: var(--taken-bg); color: var(--taken-ink); }
+  .cov-pill.s1 { background: var(--partial-bg); color: var(--partial-ink); }
+
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  .pivot {
+    border: 1px solid var(--border); border-radius: var(--radius-m); padding: 14px;
+    margin-bottom: 10px; background: var(--surface-2);
+  }
+  .pivot b { display: block; font-size: var(--fs-m); margin-bottom: 4px; }
+  .pivot .w { color: var(--open-ink); font-size: var(--fs-s); margin-top: 6px; }
+  .pivot .pivot-act { margin-top: 10px; }
+  .gaps-line { margin: 0 0 12px; color: var(--ink-2); font-size: var(--fs-m); }
+  .gaps-line b { color: var(--open-ink); }
+
+  .cutitem {
+    width: 100%; text-align: left; display: block;
+    border: none; border-left: 3px solid var(--taken-ink);
+    padding: 10px 12px; margin-bottom: 10px; background: var(--surface-2);
+    border-radius: 0 var(--radius-s) var(--radius-s) 0; font-size: var(--fs-s);
+  }
+  .cutitem .q { color: var(--ink-2); text-decoration: line-through; margin-top: 4px; }
+  .cutitem .why { color: var(--ink-1); margin-top: 4px; }
+  .empty { color: var(--ink-2); font-size: var(--fs-m); }
+
+  sup.c a {
+    font: var(--fs-xs) var(--mono); text-decoration: none;
+    padding: 10px 6px; margin: -10px -4px; display: inline-block;
+  }
+  .srcs { font-size: var(--fs-s); }
+  .srcs div { padding: 8px 0; border-bottom: 1px solid var(--border); overflow-wrap: anywhere; }
+  .srcs .snum { font: var(--fs-xs) var(--mono); color: var(--ink-2); margin-right: 6px; }
+
+  .scrim {
+    position: fixed; inset: 0; background: var(--scrim); z-index: 20;
+  }
+  #drawer {
+    position: fixed; top: 0; right: 0; width: min(480px, 100vw); height: 100vh;
+    background: var(--surface-1); border-left: 1px solid var(--border); padding: 24px;
+    transform: translateX(105%); transition: transform .18s ease; overflow-y: auto;
+    z-index: 30; box-shadow: -20px 0 40px rgba(0, 0, 0, 0.45);
+  }
+  #drawer.open { transform: none; }
+  #drawer .x { position: absolute; top: 14px; right: 14px; width: var(--tap); height: var(--tap); padding: 0; }
+  #drawer h3 { margin: 4px 0 2px; font-size: var(--fs-l); padding-right: 48px; }
+  #drawer .k { color: var(--ink-2); font-size: var(--fs-xs); text-transform: uppercase; letter-spacing: .08em; margin-top: 18px; }
+  #drawer .k-first { margin-top: 0; }
+  blockquote {
+    margin: 8px 0 0; padding: 12px 14px; background: var(--surface-0);
+    border-left: 3px solid var(--accent); border-radius: 0 var(--radius-s) var(--radius-s) 0;
+    font-size: var(--fs-m); overflow-wrap: anywhere;
+  }
+  .status { display: inline-block; margin-top: 8px; font-size: var(--fs-s); font-weight: 600; padding: 4px 12px; border-radius: 99px; }
+  .st-verified { background: var(--surface-2); color: var(--ink-1); border: 1px solid var(--border); }
+  .st-downgraded { background: var(--partial-bg); color: var(--partial-ink); }
+  .st-cut { background: var(--cut-bg); color: var(--cut-ink); }
+  .st-unchecked { background: var(--unchecked-bg); color: var(--unchecked-ink); }
+  .st-none { background: var(--open-bg); color: var(--open-ink); }
+
+  .toast {
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+    background: var(--surface-2); color: var(--ink-1); border: 1px solid var(--accent);
+    border-radius: var(--radius-m); padding: 10px 16px; z-index: 40;
+    display: flex; align-items: center; gap: 12px; box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+    max-width: min(92vw, 520px); font-size: var(--fs-s);
+  }
+  dialog.modal {
+    background: var(--surface-1); color: var(--ink-1); border: 1px solid var(--border);
+    border-radius: var(--radius-l); padding: 24px; max-width: 460px; width: 92vw;
+  }
+  dialog.modal::backdrop { background: var(--scrim); }
+  dialog.modal input {
+    width: 100%; min-height: var(--tap); margin-top: 8px; padding: 8px 12px;
+    background: var(--surface-0); color: var(--ink-1); border: 1px solid var(--border);
+    border-radius: var(--radius-m); font: inherit;
+  }
+
+  footer.foot {
+    margin-top: 32px; padding-top: 16px; border-top: 1px solid var(--border);
+    display: flex; gap: 14px; align-items: center; flex-wrap: wrap;
+    font-size: var(--fs-s); color: var(--ink-2);
+  }
+  .meta-line { font-size: var(--fs-xs); color: var(--ink-2); margin-top: 10px; }
+
+  @media (max-width: 760px) {
+    .top, .cols { grid-template-columns: 1fr; }
+    .grid th.proj, .grid td.name {
+      position: sticky; left: 0; background: var(--surface-1); z-index: 2; width: 132px;
+    }
+    table.grid { min-width: 560px; }
+  }
+  @media (max-width: 600px) {
+    .wrap { padding: 16px 14px 64px; }
+    .row > select, .row > button.primary { flex: 1 1 100%; margin-left: 0; max-width: 100%; }
+    .pill { margin-left: 0; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <a href="/" class="brand" id="homelink"><h1>Prior <span>Art</span></h1></a>
+    <div class="tag">Has someone built this already? Every overlap links to a checked quote.</div>
+    <div class="pill hidden" id="status" role="status"></div>
+  </header>
+
+  <div class="banner bad hidden" id="offline-banner" role="status">
+    <span>You're offline. Your idea stays here until you reconnect.</span>
+  </div>
+  <div class="banner bad hidden" id="global-err" role="alert">
+    <span id="global-err-msg">Something went wrong on this page.</span>
+    <button type="button" id="reload-btn">Reload</button>
+  </div>
+  <div class="banner info hidden" id="bg-ready-banner" role="status">
+    <span>Your check finished.</span>
+    <div class="banner-actions">
+      <button type="button" id="show-bg-btn">Show it</button>
+      <button type="button" id="dismiss-bg-btn">Dismiss</button>
+    </div>
+  </div>
+
+  <main>
+    <section class="card" aria-labelledby="idea-label">
+      <label class="field-label" id="idea-label" for="idea">Your idea</label>
+      <textarea id="idea" maxlength="4500" aria-describedby="idea-hint idea-err" placeholder="Describe your idea: who it's for, what it does, and the 2–3 things that make it different."></textarea>
+      <div class="field-meta">
+        <span id="idea-hint">A sentence or a paragraph is enough. Press Ctrl+Enter (⌘+Enter) to check.</span>
+        <span id="char-count" class="char-count hidden" aria-live="polite"></span>
+      </div>
+      <div id="idea-err" class="field-err hidden" role="alert"></div>
+      <div class="row">
+        <button type="button" class="primary" id="go">Check idea</button>
+        <button type="button" class="chip" data-sample="Build a research agent.">Try: a research agent</button>
+        <button type="button" class="chip" data-sample="Prior Art: a research agent that takes a one-paragraph product or hackathon idea, breaks it into its core features, searches GitHub, Hacker News, Product Hunt, arXiv, Devpost and the web for existing projects, compares each one feature by feature with a quote from its page, checks every quote against the page and with a second model, and returns an overlap grid, a novelty score, the open gaps and pivots that target them.">Try: Prior Art itself</button>
+        <select id="sim" class="sim hidden" aria-label="Simulation mode">
+          <option value="">Normal check</option>
+          <option value="search_down">Failure demo: search down</option>
+          <option value="extract_down">Failure demo: page reading down</option>
+        </select>
+        <select id="past" class="past push-right" aria-label="Recent reports"><option value="">Recent reports…</option></select>
+      </div>
+      <div id="past-err" class="field-err hidden" role="status"></div>
+    </section>
+
+    <section class="card hidden" id="notfound" role="status">
+      <h2>Report not found</h2>
+      <p class="empty">This report doesn't exist, belongs to another browser, or was deleted.</p>
+      <div class="row">
+        <button type="button" class="primary" id="nf-new">New check</button>
+      </div>
+    </section>
+
+    <section class="card hidden" id="progress" aria-labelledby="prog-heading">
+      <h2 id="prog-heading" class="sr-only">Check progress</h2>
+      <div class="stages" id="stages" aria-live="polite"></div>
+      <div class="prog-meta">
+        <span id="prog-msg">Starting check…</span>
+        <span id="elapsed" class="elapsed">0:00</span>
+      </div>
+      <div class="banner bad hidden" id="errbanner" role="alert"></div>
+      <details class="logbox" open>
+        <summary>Activity log</summary>
+        <div id="log" aria-live="off"></div>
+      </details>
+    </section>
+
+    <section class="card hidden" id="skeleton" aria-hidden="true">
+      <div class="top">
+        <div><div class="sk sk-score"></div><div class="sk sk-line-sm"></div></div>
+        <div><div class="sk sk-line"></div><div class="sk sk-line-sm"></div></div>
+      </div>
+      <div class="sk sk-row"></div>
+      <div class="sk sk-row"></div>
+      <div class="sk sk-row"></div>
+    </section>
+
+    <div id="results" class="hidden">
+      <div class="banner hidden" id="banner" role="status"></div>
+
+      <section class="card top" aria-labelledby="verdict">
+        <div class="score">
+          <div class="n nov-none" id="nov">–</div>
+          <div class="l" id="nov-label">Novelty score</div>
+          <progress class="novbar" id="novbar" max="100" value="0" aria-label="Novelty score out of 100"></progress>
+        </div>
+        <div>
+          <h2 class="verdict" id="verdict" tabindex="-1"></h2>
+          <div class="sub" id="summary"></div>
+          <div class="idea-checked hidden" id="idea-checked"></div>
+          <div class="checks" id="checks"></div>
+          <div class="actions-bar">
+            <button type="button" id="copy-link">Copy link</button>
+            <a class="btn" id="mdlink" href="#">Download report</a>
+            <button type="button" id="edit-idea">Edit and re-check</button>
+            <button type="button" class="danger" id="delete-report">Delete report</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="card" id="gridcard" aria-labelledby="grid-heading">
+        <div class="row-flush">
+          <h2 id="grid-heading">Overlap grid</h2>
+          <div class="legend push-right">
+            <span><i class="dot dot-taken"></i>● Done</span>
+            <span><i class="dot dot-partial"></i>◐ Partly</span>
+            <span><i class="dot dot-open"></i>○ Open</span>
+            <span><i class="dot dot-cut"></i>✂ Rejected</span>
+            <span><i class="dot dot-unchecked"></i>? Unchecked</span>
+          </div>
+        </div>
+        <p class="grid-hint">Select any cell to see its quoted evidence and source. Use arrow keys to move across cells.</p>
+        <div class="gridwrap"><table class="grid" id="grid"></table></div>
+      </section>
+
+      <div class="cols">
+        <section class="card" aria-labelledby="pivots-heading">
+          <span class="eyebrow">Open space</span>
+          <h2 id="pivots-heading">Gaps &amp; pivots</h2>
+          <div id="pivots"></div>
+        </section>
+        <section class="card" id="cutcard" aria-labelledby="cuts-heading">
+          <span class="eyebrow">Evidence audit</span>
+          <h2 id="cuts-heading">Rejected claims</h2>
+          <div id="cuts"></div>
+        </section>
+      </div>
+
+      <section class="card" aria-labelledby="sources-heading">
+        <span class="eyebrow">Citations</span>
+        <h2 id="sources-heading">Sources</h2>
+        <div class="srcs" id="sources"></div>
+        <div class="meta-line" id="report-meta"></div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="foot">
+    <span>Reports are scoped privately to this browser.</span>
+    <a href="/api/me/export" id="export-me" class="push-right">Download my data</a>
+    <button type="button" class="linkbtn" id="open-delete-me">Delete my data</button>
+  </footer>
+</div>
+
+<div class="scrim hidden" id="scrim"></div>
+<aside id="drawer" role="dialog" aria-modal="true" aria-labelledby="dtitle" aria-hidden="true">
+  <button type="button" class="x" id="close" aria-label="Close evidence panel">✕</button>
+  <div id="dbody"></div>
+</aside>
+
+<div class="toast hidden" id="toast" role="status" aria-live="polite">
+  <span id="toast-msg"></span>
+  <button type="button" class="linkbtn hidden" id="toast-act"></button>
+</div>
+
+<dialog id="delete-dialog" class="modal" aria-labelledby="del-title">
+  <h2 id="del-title">Delete all your data?</h2>
+  <p class="sub">This permanently deletes all reports saved for this browser and cannot be undone. Download a copy first if you want one.</p>
+  <label class="field-label" for="del-confirm">Type <b>delete</b> to confirm</label>
+  <input id="del-confirm" type="text" autocomplete="off">
+  <div class="row">
+    <a class="btn" href="/api/me/export">Download my data</a>
+    <button type="button" id="del-cancel" class="push-right">Cancel</button>
+    <button type="button" id="del-go" class="danger" disabled>Delete everything</button>
+  </div>
+</dialog>
+
+<script>
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const safeUrl = (u) => {
+  try {
+    const parsed = new URL(String(u ?? "").trim());
+    return (parsed.protocol === "http:" || parsed.protocol === "https:") ? parsed.href : "#";
+  } catch {
+    return "#";
+  }
+};
+const safeParse = (raw) => { try { return JSON.parse(raw); } catch { return null; } };
+const prefersReduced = () => window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const scrollBehavior = () => prefersReduced() ? "auto" : "smooth";
+
+const STAGES = [
+  ["decompose", "Features"],
+  ["search", "Search"],
+  ["triage", "Shortlist"],
+  ["extract", "Read pages"],
+  ["compare", "Compare"],
+  ["verify", "Check claims"],
+  ["pivots", "Gaps & pivots"]
+];
+const CELL_LABEL = {2: "● Done", 1: "◐ Partly", 0: "○ Open"};
+const PLAIN_LABEL = {2: "Done", 1: "Partly", 0: "Open"};
+
+let current = null;
+let es = null;
+let activeCheckId = null;
+let lastSeq = 0;
+let lastStage = null;
+let elapsedTimer = null;
+let checkStartedMs = 0;
+let pendingBgReport = null;
+let pendingPivotOf = null;
+let validationShown = false;
+let lastTrigger = null;
+let toastTimer = null;
+let draftTimer = null;
+let pastList = [];
+
+function showToast(msg, actionLabel, actionFn) {
+  clearTimeout(toastTimer);
+  $("#toast-msg").textContent = msg;
+  const act = $("#toast-act");
+  if (actionLabel && actionFn) {
+    act.textContent = actionLabel;
+    act.classList.remove("hidden");
+    act.onclick = () => { hideToast(); actionFn(); };
+  } else {
+    act.classList.add("hidden");
+    act.onclick = null;
+  }
+  $("#toast").classList.remove("hidden");
+  toastTimer = setTimeout(hideToast, 8000);
+}
+function hideToast() {
+  clearTimeout(toastTimer);
+  $("#toast").classList.add("hidden");
+}
+
+async function api(path, opts = {}) {
+  const res = await fetch(path, opts);
+  const text = await res.text();
+  const data = safeParse(text);
+  if (!res.ok) {
+    const detail = (data && (typeof data.detail === "string" ? data.detail : Array.isArray(data.detail) ? data.detail[0]?.msg : null)) || `Request failed (${res.status})`;
+    const err = new Error(detail);
+    err.status = res.status;
+    err.data = data;
+    throw err;
+  }
+  return data;
+}
+
+window.addEventListener("error", () => {
+  $("#global-err-msg").textContent = "Something unexpected happened on this page.";
+  $("#global-err").classList.remove("hidden");
+});
+window.addEventListener("unhandledrejection", () => {
+  $("#global-err-msg").textContent = "A background request failed unexpectedly.";
+  $("#global-err").classList.remove("hidden");
+});
+$("#reload-btn").onclick = () => window.location.reload();
+
+function updateOnline() {
+  $("#offline-banner").classList.toggle("hidden", navigator.onLine !== false);
+}
+window.addEventListener("online", updateOnline);
+window.addEventListener("offline", updateOnline);
+updateOnline();
+
+// Draft persistence in sessionStorage
+function saveDraft() {
+  clearTimeout(draftTimer);
+  draftTimer = setTimeout(() => {
+    try { sessionStorage.setItem("priorart_draft", $("#idea").value); } catch {}
+  }, 300);
+}
+function restoreDraft() {
+  const params = new URLSearchParams(window.location.search);
+  const prefill = params.get("idea");
+  if (prefill) {
+    $("#idea").value = prefill.slice(0, 4000);
+    pendingPivotOf = params.get("pivot_of") || null;
+  } else {
+    try {
+      const saved = sessionStorage.getItem("priorart_draft");
+      if (saved && !$("#idea").value) $("#idea").value = saved;
+    } catch {}
+  }
+  updateCounter();
+}
+
+function updateCounter() {
+  const len = $("#idea").value.trim().length;
+  const el = $("#char-count");
+  if (len >= 3500) {
+    el.textContent = `${len.toLocaleString()} / 4,000`;
+    el.classList.toggle("over", len > 4000);
+    el.classList.remove("hidden");
+  } else {
+    el.classList.add("hidden");
+  }
+  if (validationShown) validateIdea();
+}
+
+function validateIdea() {
+  const idea = $("#idea").value.trim();
+  const errEl = $("#idea-err");
+  let msg = "";
+  if (idea.length < 10) msg = "Describe the idea in at least a sentence (10 characters).";
+  else if (idea.length > 4000) msg = `Shorten the idea to 4,000 characters (now ${idea.length.toLocaleString()}).`;
+  if (msg) {
+    errEl.textContent = msg;
+    errEl.classList.remove("hidden");
+    $("#idea").setAttribute("aria-invalid", "true");
+    return false;
+  }
+  errEl.classList.add("hidden");
+  errEl.textContent = "";
+  $("#idea").removeAttribute("aria-invalid");
+  return true;
+}
+
+$("#idea").addEventListener("input", () => { pendingPivotOf = null; updateCounter(); saveDraft(); });
+$("#idea").addEventListener("keydown", (e) => {
+  if ((e.metaKey || e.ctrlKey) && e.key === "Enter") { e.preventDefault(); startCheck(); }
+});
+
+document.querySelectorAll("[data-sample]").forEach(btn => {
+  btn.onclick = () => {
+    const prev = $("#idea").value;
+    const sample = btn.dataset.sample;
+    $("#idea").value = sample;
+    pendingPivotOf = null;
+    updateCounter();
+    saveDraft();
+    if (prev.trim() && prev.trim() !== sample.trim()) {
+      showToast("Idea replaced with a sample.", "Undo", () => {
+        $("#idea").value = prev;
+        updateCounter();
+        saveDraft();
+      });
+    }
+  };
+});
+
+async function loadStatus() {
+  const el = $("#status");
+  try {
+    const s = await api("/api/status");
+    el.classList.remove("hidden", "warn", "bad");
+    if (s.demo_controls) $("#sim").classList.remove("hidden");
+    if (s.demo_mode) {
+      el.textContent = "Demo data";
+      el.classList.add("warn");
+    } else if (!s.available) {
+      el.textContent = "Service unavailable";
+      el.classList.add("bad");
+    } else {
+      el.textContent = `${String(s.primary_model || "").split("/").pop()} + ${String(s.verifier_model || "").split("/").pop()}`;
+    }
+  } catch {
+    el.classList.remove("hidden");
+    el.classList.add("bad");
+    el.innerHTML = 'Server unreachable <button type="button" class="linkbtn" id="retry-status">Retry</button>';
+    $("#retry-status").onclick = loadStatus;
+  }
+}
+
+function formatPastLabel(r) {
+  const sum = String(r.summary || "Untitled check").slice(0, 60);
+  if (r.novelty !== null && r.novelty !== undefined) return `Novelty ${r.novelty}/100 · ${sum}`;
+  const labels = {
+    running: "Running…",
+    failed: "No score: check failed",
+    insufficient_evidence: "No score: not enough evidence",
+    no_close_match: "Low evidence"
+  };
+  return `${labels[r.status] || "No score"} · ${sum}`;
+}
+
+function renderPastSelect() {
+  $("#past").innerHTML = '<option value="">Recent reports…</option>' + pastList.map(r =>
+    `<option value="${esc(r.id)}">${esc(formatPastLabel(r))}</option>`
+  ).join("");
+}
+
+async function loadPast() {
+  const err = $("#past-err");
+  err.classList.add("hidden");
+  try {
+    pastList = await api("/api/reports");
+    renderPastSelect();
+  } catch {
+    err.innerHTML = 'Couldn\'t load recent reports. <button type="button" class="linkbtn" id="retry-past">Retry</button>';
+    err.classList.remove("hidden");
+    $("#retry-past").onclick = loadPast;
+  }
+}
+
+async function openReportById(id, {pushUrl = true} = {}) {
+  closeDrawer();
+  $("#notfound").classList.add("hidden");
+  $("#skeleton").classList.remove("hidden");
+  $("#results").classList.add("hidden");
+  try {
+    const r = await api("/api/reports/" + encodeURIComponent(id));
+    $("#skeleton").classList.add("hidden");
+    if (pushUrl) history.pushState({reportId: id}, "", "/r/" + encodeURIComponent(id));
+    if (r.status === "running") {
+      activeCheckId = id;
+      $("#progress").classList.remove("hidden");
+      setStage("decompose");
+      connectStream(id, 0);
+    } else {
+      if (!activeCheckId || activeCheckId === id) $("#progress").classList.add("hidden");
+      render(r);
+    }
+  } catch (e) {
+    $("#skeleton").classList.add("hidden");
+    if (e.status === 404) {
+      $("#notfound").classList.remove("hidden");
+    } else {
+      $("#errbanner").innerHTML = `<span><b>Couldn't load this report.</b> ${esc(e.message)}</span><button type="button" id="retry-open">Try again</button>`;
+      $("#errbanner").classList.remove("hidden");
+      $("#progress").classList.remove("hidden");
+      $("#retry-open").onclick = () => openReportById(id, {pushUrl});
+    }
+  }
+}
+
+$("#past").onchange = (e) => {
+  const id = e.target.value;
+  if (!id) return;
+  e.target.value = "";
+  openReportById(id);
+};
+
+$("#nf-new").onclick = () => {
+  $("#notfound").classList.add("hidden");
+  history.pushState({}, "", "/");
+  $("#idea").focus();
+};
+
+function log(msg, cls = "") {
+  const d = document.createElement("div");
+  d.className = cls;
+  d.textContent = msg;
+  const box = $("#log");
+  box.appendChild(d);
+  box.scrollTop = box.scrollHeight;
+}
+
+function setStage(name, endStatus) {
+  if (!endStatus) lastStage = name;
+  const stopped = endStatus && endStatus !== "ok" && endStatus !== "no_close_match";
+  let reached = false;
+  $("#stages").innerHTML = STAGES.map(([k, l]) => {
+    if (endStatus) {
+      let cls = reached && stopped ? "skip" : "done";
+      if (k === lastStage) { reached = true; if (stopped) cls = "fail"; }
+      return `<span class="stage ${cls}">${esc(l)}</span>`;
+    }
+    if (k === name) { reached = true; return `<span class="stage on">${esc(l)}</span>`; }
+    return `<span class="stage ${reached ? "" : "done"}">${esc(l)}</span>`;
+  }).join("");
+}
+
+function startElapsed() {
+  clearInterval(elapsedTimer);
+  checkStartedMs = Date.now();
+  $("#elapsed").textContent = "0:00";
+  elapsedTimer = setInterval(() => {
+    const s = Math.floor((Date.now() - checkStartedMs) / 1000);
+    const m = Math.floor(s / 60);
+    const sec = String(s % 60).padStart(2, "0");
+    $("#elapsed").textContent = `${m}:${sec}`;
+    if (activeCheckId) $("#go").textContent = `Checking… ${m}:${sec}`;
+  }, 1000);
+}
+
+function stopCheckUI() {
+  if (es) { es.close(); es = null; }
+  clearInterval(elapsedTimer);
+  activeCheckId = null;
+  $("#go").disabled = false;
+  $("#go").removeAttribute("aria-busy");
+  $("#go").textContent = "Check idea";
+  $("#sim").disabled = false;
+  document.title = current && current.novelty !== null && current.novelty !== undefined
+    ? `Novelty ${current.novelty} — Prior Art`
+    : "Prior Art — Has someone built this already?";
+}
+
+function makeIdempotencyKey() {
+  if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+  return `${Date.now()}-${Math.random().toString(36).slice(2, 12)}`;
+}
+
+async function startCheck() {
+  validationShown = true;
+  if (!validateIdea()) { $("#idea").focus(); return; }
+  if (navigator.onLine === false) {
+    $("#idea-err").textContent = "You're offline. Your idea will stay here until you're back.";
+    $("#idea-err").classList.remove("hidden");
+    return;
+  }
+
+  const idea = $("#idea").value.trim();
+  const sim = $("#sim").classList.contains("hidden") ? "" : $("#sim").value;
+
+  if (es) { es.close(); es = null; }
+  closeDrawer();
+  $("#go").disabled = true;
+  $("#go").setAttribute("aria-busy", "true");
+  $("#go").textContent = "Starting…";
+  $("#sim").disabled = true;
+  $("#notfound").classList.add("hidden");
+  $("#results").classList.add("hidden");
+  $("#bg-ready-banner").classList.add("hidden");
+  $("#progress").classList.remove("hidden");
+  $("#skeleton").classList.remove("hidden");
+  $("#log").innerHTML = "";
+  $("#errbanner").classList.add("hidden");
+  $("#prog-msg").textContent = "Starting check…";
+  lastSeq = 0;
+  setStage("decompose");
+  startElapsed();
+
+  try {
+    const res = await api("/api/checks", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Idempotency-Key": makeIdempotencyKey()
+      },
+      body: JSON.stringify({
+        idea,
+        simulate: sim || null,
+        pivot_of_report_id: pendingPivotOf
+      })
+    });
+    activeCheckId = res.id;
+    pendingPivotOf = null;
+    history.pushState({reportId: res.id}, "", "/r/" + encodeURIComponent(res.id));
+    connectStream(res.id, 0);
+  } catch (err) {
+    $("#skeleton").classList.add("hidden");
+    setStage(null, "failed");
+    $("#errbanner").innerHTML = `<span><b>Couldn't start the check.</b> ${esc(err.message)}</span><div class="banner-actions"><button type="button" id="retry-start">Try again</button></div>`;
+    $("#errbanner").classList.remove("hidden");
+    $("#retry-start").onclick = startCheck;
+    stopCheckUI();
+  }
+}
+
+function connectStream(checkId, afterSeq) {
+  if (es) { es.close(); es = null; }
+  const url = `/api/checks/${encodeURIComponent(checkId)}/events` + (afterSeq > 0 ? `?after=${afterSeq}` : "");
+  es = new EventSource(url);
+
+  const trackSeq = (e) => {
+    const n = Number(e.lastEventId);
+    if (Number.isFinite(n) && n > lastSeq) lastSeq = n;
+  };
+
+  es.addEventListener("stage", (e) => {
+    trackSeq(e);
+    const d = safeParse(e.data);
+    if (!d) return;
+    setStage(d.stage);
+    $("#prog-msg").textContent = d.message || "";
+    document.title = `Checking: ${d.stage} — Prior Art`;
+    log("▸ " + (d.message || d.stage));
+  });
+  es.addEventListener("plan", (e) => {
+    trackSeq(e);
+    const d = safeParse(e.data);
+    if (!d || !Array.isArray(d.features)) return;
+    d.features.forEach(f => log(`   ${f.id} ${f.name}`));
+  });
+  es.addEventListener("search", (e) => {
+    trackSeq(e);
+    const d = safeParse(e.data);
+    if (!d) return;
+    log(`   ${String(d.label || "").padEnd(12)} ${String(d.count ?? 0).padStart(2)} results · ${d.query || ""}`);
+  });
+  es.addEventListener("triage", (e) => {
+    trackSeq(e);
+    const d = safeParse(e.data);
+    if (!d || !Array.isArray(d.picked)) return;
+    d.picked.forEach(p => log(`   ✓ ${p.name}`));
+  });
+  es.addEventListener("compared", (e) => {
+    trackSeq(e);
+    const d = safeParse(e.data);
+    if (!d) return;
+    log(`   ${d.name}: ${d.claims} overlap claims`);
+  });
+  es.addEventListener("verified", (e) => {
+    trackSeq(e);
+    const d = safeParse(e.data);
+    if (!d) return;
+    const cut = (d.cut_quote || 0) + (d.cut_verifier || 0);
+    log(`   ${d.name}: ${d.checked} checked, ${cut} rejected, ${d.downgraded} lowered`, cut ? "w" : "");
+  });
+  es.addEventListener("warn", (e) => {
+    trackSeq(e);
+    const d = safeParse(e.data);
+    if (d && d.message) log("   ! " + d.message, "w");
+  });
+  es.addEventListener("check_error", (e) => {
+    trackSeq(e);
+    const d = safeParse(e.data) || {message: "Check failed unexpectedly."};
+    log("Error: " + d.message, "e");
+    $("#skeleton").classList.add("hidden");
+    setStage(null, "failed");
+    $("#errbanner").innerHTML = `<span><b>Check failed.</b> ${esc(d.message)}</span><div class="banner-actions"><button type="button" id="retry-check">Try again</button><button type="button" id="edit-after-err">Edit idea</button></div>`;
+    $("#errbanner").classList.remove("hidden");
+    $("#retry-check").onclick = startCheck;
+    $("#edit-after-err").onclick = () => $("#idea").focus();
+    stopCheckUI();
+    loadPast();
+  });
+  es.addEventListener("done", (e) => {
+    trackSeq(e);
+    const r = safeParse(e.data);
+    $("#skeleton").classList.add("hidden");
+    if (!r) { stopCheckUI(); return; }
+    setStage(null, r.status);
+    // Prepend into recent list immediately without extra round-trip.
+    pastList = [{id: r.id, summary: r.summary, status: r.status, novelty: r.novelty, created: r.created}, ...pastList.filter(x => x.id !== r.id)].slice(0, 30);
+    renderPastSelect();
+
+    const viewingAnother = current && current.id && current.id !== r.id && !$("#results").classList.contains("hidden");
+    stopCheckUI();
+    if (viewingAnother) {
+      pendingBgReport = r;
+      $("#bg-ready-banner").classList.remove("hidden");
+    } else {
+      render(r);
+    }
+  });
+  // Browser-level connection drop (distinct from server's check_error event).
+  es.addEventListener("error", () => {
+    if (!activeCheckId) return;
+    if (es) { es.close(); es = null; }
+    const lostId = activeCheckId;
+    $("#errbanner").innerHTML = `<span><b>Connection lost.</b> The check keeps running on the server.</span><div class="banner-actions"><button type="button" id="reconnect-btn">Reconnect</button><button type="button" id="refresh-past-btn">Refresh recent</button></div>`;
+    $("#errbanner").classList.remove("hidden");
+    $("#reconnect-btn").onclick = () => {
+      $("#errbanner").classList.add("hidden");
+      connectStream(lostId, lastSeq);
+    };
+    $("#refresh-past-btn").onclick = () => openReportById(lostId, {pushUrl: false});
+  });
+}
+
+$("#go").onclick = startCheck;
+$("#show-bg-btn").onclick = () => {
+  if (!pendingBgReport) return;
+  const r = pendingBgReport;
+  pendingBgReport = null;
+  $("#bg-ready-banner").classList.add("hidden");
+  history.pushState({reportId: r.id}, "", "/r/" + encodeURIComponent(r.id));
+  render(r);
+};
+$("#dismiss-bg-btn").onclick = () => {
+  pendingBgReport = null;
+  $("#bg-ready-banner").classList.add("hidden");
+};
+
+function cite(text) {
+  return esc(text).replace(/\[(\d+)\]/g, (m, n) => {
+    const src = (current?.sources || []).find(s => String(s.n) === String(n));
+    if (!src) return m;
+    const href = safeUrl(src.url);
+    return `<sup class="c"><a href="${esc(href)}" target="_blank" rel="noopener noreferrer" title="${esc(src.name)}">[${esc(n)}]<span class="sr-only"> (opens in a new tab)</span></a></sup>`;
+  });
+}
+function isCut(c) { return c.status === "cut_quote" || c.status === "cut_verifier"; }
+
+function safeSection(el, fn) {
+  try { fn(); }
+  catch { el.innerHTML = '<div class="empty">This section couldn\'t be displayed.</div>'; }
+}
+
+function render(raw) {
+  const r = {
+    features: [], projects: [], sources: [], gaps: [], pivots: [], coverage: {}, crowd: {},
+    checks: {checked: 0, cut_quote: 0, cut_verifier: 0, downgraded: 0, unchecked: 0, unverified: 0},
+    ...raw
+  };
+  current = r;
+  closeDrawer();
+  $("#notfound").classList.add("hidden");
+  $("#skeleton").classList.add("hidden");
+  $("#results").classList.remove("hidden");
+
+  const scored = r.novelty !== null && r.novelty !== undefined;
+  const novEl = $("#nov");
+  novEl.textContent = scored ? String(r.novelty) : "–";
+  novEl.className = "n " + (!scored ? "nov-none" : r.novelty >= 60 ? "nov-open" : r.novelty >= 35 ? "nov-partial" : "nov-taken");
+  $("#novbar").value = scored ? Number(r.novelty) : 0;
+  $("#nov-label").textContent = scored ? "Novelty / 100" : "No score";
+  document.title = scored ? `Novelty ${r.novelty} — Prior Art` : "Prior Art — Report";
+
+  const titles = {
+    failed: "Check failed.",
+    insufficient_evidence: "Not enough evidence.",
+    no_close_match: "Low evidence."
+  };
+  const bn = $("#banner");
+  const msgs = [];
+  if (r.demo) msgs.push("Demo data: generated with offline fixtures, not real search results.");
+  if (r.message) msgs.push(r.message);
+  if (msgs.length) {
+    bn.classList.remove("hidden", "bad", "info");
+    if (r.status === "failed" || r.status === "insufficient_evidence") bn.classList.add("bad");
+    bn.innerHTML = `<span><b>${esc(titles[r.status] || "Note.")}</b> ${esc(msgs.join(" "))}</span>`;
+  } else {
+    bn.classList.add("hidden");
+  }
+
+  $("#verdict").innerHTML = r.verdict
+    ? cite(r.verdict)
+    : esc(r.status === "ok" ? (r.summary || "Report complete") : (titles[r.status] || r.summary || ""));
+  $("#summary").textContent = `${r.projects.length} existing project${r.projects.length === 1 ? "" : "s"} from ${r.candidates_found ?? 0} search results · ${r.seconds ?? 0}s`;
+
+  const ic = $("#idea-checked");
+  if (r.idea) {
+    ic.innerHTML = `<b>Idea checked</b>${esc(r.idea.slice(0, 420))}${r.idea.length > 420 ? "…" : ""}`;
+    ic.classList.remove("hidden");
+  } else {
+    ic.classList.add("hidden");
+  }
+
+  const rid = r.id || r.file;
+  const mdLink = $("#mdlink");
+  if (rid) {
+    mdLink.href = "/api/reports/" + encodeURIComponent(rid) + "/report.md";
+    mdLink.classList.remove("hidden");
+  } else {
+    mdLink.classList.add("hidden");
+  }
+
+  safeSection($("#checks"), () => {
+    const c = r.checks || {};
+    const extra = [];
+    if (c.unchecked) extra.push(`<div class="check"><b>${esc(c.unchecked)}</b>unchecked (omitted)</div>`);
+    if (c.unverified) extra.push(`<div class="check"><b>${esc(c.unverified)}</b>unverified</div>`);
+    $("#checks").innerHTML = `
+      <div class="check"><b>${esc(c.checked || 0)}</b>overlaps checked</div>
+      <button type="button" class="check cut" data-jump><b>${esc(c.cut_quote || 0)}</b>rejected: not on page</button>
+      <button type="button" class="check cut" data-jump><b>${esc(c.cut_verifier || 0)}</b>rejected: not proven</button>
+      <div class="check"><b>${esc(c.downgraded || 0)}</b>lowered</div>${extra.join("")}`;
+    document.querySelectorAll("[data-jump]").forEach(el => {
+      el.onclick = () => $("#cutcard").scrollIntoView({behavior: scrollBehavior()});
+    });
+  });
+
+  safeSection($("#grid"), () => {
+    const feats = r.features || [];
+    let h = `<thead><tr><th class="proj">Existing project</th>` + feats.map(f => {
+      const open = (r.coverage[f.id] ?? 0) === 0;
+      const crowdCount = (r.crowd && r.crowd[f.id]) ? ` (${r.crowd[f.id]} covering)` : "";
+      return `<th class="${open ? "open" : ""}" title="${esc(f.description || "")}${esc(crowdCount)}">${open ? '<span class="gap">Open</span>' : ""}${esc(f.name)}</th>`;
+    }).join("") + `</tr></thead><tbody>`;
+
+    r.projects.forEach((p, rowIdx) => {
+      const flag = (p.injection_flags || []).length
+        ? `<span class="flag" title="This page contains text that tries to instruct AI tools (&quot;${esc(p.injection_flags[0])}&quot;). It was treated as plain text.">⚠ injection ignored</span>`
+        : "";
+      const snip = p.page_source === "snippet" ? `<span class="badge" title="Full page couldn't be read; compared against search preview">preview</span>` : "";
+      const href = safeUrl(p.url);
+      h += `<tr><td class="name"><div class="pname" title="${esc(p.name)}"><span class="cit">[${esc(p.n)}]</span>${esc(p.name)}<span class="badge">${esc(p.source_label)}</span>${snip}</div>${flag}
+        <a href="${esc(href)}" target="_blank" rel="noopener noreferrer" title="${esc(p.one_liner || p.url)}">${esc(p.one_liner || p.url)}<span class="sr-only"> (opens in a new tab)</span></a></td>`;
+      feats.forEach((f, colIdx) => {
+        const cell = (p.cells && p.cells[f.id]) || {score: 0, status: "none"};
+        let cls = "s" + (cell.score ?? 0);
+        let txt = CELL_LABEL[cell.score ?? 0] || "○ Open";
+        let stateWord = PLAIN_LABEL[cell.score ?? 0] || "Open";
+        if (isCut(cell)) { cls = "cut"; txt = "✂ Rejected"; stateWord = "Rejected"; }
+        else if (cell.status === "unchecked") { cls = "unchecked"; txt = "? Unchecked"; stateWord = "Unchecked"; }
+        else if (cell.status === "claimed" || cell.status === "unverified") { cls = "unverified"; txt = "⚠ Unverified"; stateWord = "Unverified"; }
+        const tab = (rowIdx === 0 && colIdx === 0) ? "0" : "-1";
+        h += `<td class="cell-td"><button type="button" class="cellbtn ${cls}" tabindex="${tab}" data-r="${rowIdx}" data-c="${colIdx}" data-p="${esc(p.id)}" data-f="${esc(f.id)}" aria-label="${esc(p.name)}, ${esc(f.name)}: ${esc(stateWord)}. Show evidence">${txt}</button></td>`;
+      });
+      h += `</tr>`;
+    });
+
+    if (!r.projects.length) {
+      h += `<tr><td class="empty" colspan="${feats.length + 1}">Nothing we found overlaps this idea after the checks. That's a good sign, but it isn't proof nobody has built it.</td></tr>`;
+    }
+    if (feats.length) {
+      h += `<tr class="cov"><td class="name"><b>Best coverage</b></td>` + feats.map(f => {
+        const s = r.coverage[f.id] ?? 0;
+        return `<td class="cell-td"><div class="cov-pill s${s}">${CELL_LABEL[s] || "○ Open"}</div></td>`;
+      }).join("") + `</tr>`;
+    }
+    h += `</tbody>`;
+    $("#grid").innerHTML = h;
+    wireGridNavigation();
+  });
+
+  safeSection($("#pivots"), () => {
+    const gapHtml = r.gaps.length
+      ? `<p class="gaps-line">Nobody covers: ${r.gaps.map(g => `<b>${esc(g.name)}</b>`).join(", ")}</p>`
+      : (r.projects.length ? `<p class="gaps-line">Every feature is covered by at least one project. The pivots aim at the thinnest coverage.</p>` : "");
+    const cards = (r.pivots || []).map((p, idx) =>
+      `<div class="pivot"><b>${esc(p.title)}</b><div>${cite(p.pitch || "")}</div><div class="w">${cite(p.why_open || "")}</div>
+        <div class="pivot-act"><button type="button" data-pivot="${idx}">Check this pivot</button></div></div>`
+    ).join("");
+    $("#pivots").innerHTML = gapHtml + (cards || `<div class="empty">${r.status === "ok" || r.status === "no_close_match" ? "No pivots generated for this check." : "No pivots this time: there was no evidence to aim them at."}</div>`);
+    document.querySelectorAll("[data-pivot]").forEach(btn => {
+      btn.onclick = () => {
+        const pv = r.pivots[Number(btn.dataset.pivot)];
+        if (!pv) return;
+        $("#idea").value = `${pv.title}: ${pv.pitch || ""}`.trim();
+        pendingPivotOf = r.id || null;
+        updateCounter();
+        saveDraft();
+        $("#idea").focus();
+        $("#idea").scrollIntoView({behavior: scrollBehavior()});
+      };
+    });
+  });
+
+  safeSection($("#cuts"), () => {
+    const cuts = [];
+    r.projects.forEach(p => (r.features || []).forEach(f => {
+      const cell = p.cells && p.cells[f.id];
+      if (cell && (isCut(cell) || cell.status === "downgraded" || cell.status === "unchecked")) cuts.push([p, f, cell]);
+    }));
+    const badgeFor = (st) => st === "cut_quote" ? "Quote not on the page"
+      : st === "cut_verifier" ? "Quote doesn't prove it"
+      : st === "unchecked" ? "Unchecked" : "Lowered";
+    $("#cuts").innerHTML = cuts.map(([p, f, cell]) =>
+      `<button type="button" class="cutitem" data-p="${esc(p.id)}" data-f="${esc(f.id)}">
+        <b>${esc(p.name)}</b> → ${esc(f.name)} <span class="badge">${esc(badgeFor(cell.status))}</span>
+        ${cell.quote ? `<div class="q">“${esc(cell.quote)}”</div>` : ""}
+        <div class="why">${esc(cell.reason || "")}</div>
+      </button>`
+    ).join("") || `<div class="empty">${(r.checks?.checked || 0) ? "Every overlap held up. Nothing was rejected." : "No overlaps to check."}</div>`;
+    document.querySelectorAll(".cutitem").forEach(el => {
+      el.onclick = () => openCell(el.dataset.p, el.dataset.f, el);
+    });
+  });
+
+  safeSection($("#sources"), () => {
+    $("#sources").innerHTML = (r.sources || []).map(s => {
+      const href = safeUrl(s.url);
+      return `<div><span class="snum">[${esc(s.n)}]</span><b>${esc(s.name)}</b> · ${esc(s.source)} · <a href="${esc(href)}" target="_blank" rel="noopener noreferrer">${esc(s.url)}<span class="sr-only"> (opens in a new tab)</span></a></div>`;
+    }).join("") || `<div class="empty">No sources: nothing was cited.</div>`;
+    const models = r.models || {};
+    const qCount = (r.queries || []).length;
+    $("#report-meta").textContent = `${qCount} queries across 6 sources · Writer: ${models.primary || "—"} · Second check: ${models.verifier || "—"}`;
+  });
+}
+
+function wireGridNavigation() {
+  const btns = Array.from(document.querySelectorAll(".grid button.cellbtn"));
+  btns.forEach(btn => {
+    btn.onclick = () => openCell(btn.dataset.p, btn.dataset.f, btn);
+    btn.addEventListener("keydown", (e) => {
+      const r = Number(btn.dataset.r), c = Number(btn.dataset.c);
+      let nr = r, nc = c;
+      if (e.key === "ArrowRight") nc += 1;
+      else if (e.key === "ArrowLeft") nc -= 1;
+      else if (e.key === "ArrowDown") nr += 1;
+      else if (e.key === "ArrowUp") nr -= 1;
+      else return;
+      const target = document.querySelector(`.grid button.cellbtn[data-r="${nr}"][data-c="${nc}"]`);
+      if (target) {
+        e.preventDefault();
+        btn.setAttribute("tabindex", "-1");
+        target.setAttribute("tabindex", "0");
+        target.focus();
+      }
+    });
+  });
+}
+
+function openCell(pid, fid, triggerEl) {
+  if (!current) return;
+  const p = (current.projects || []).find(x => x.id === pid);
+  const f = (current.features || []).find(x => x.id === fid);
+  if (!p || !f || !p.cells || !p.cells[fid]) return;
+  const c = p.cells[fid];
+  lastTrigger = triggerEl || document.activeElement;
+  const stMap = {
+    verified: ["st-verified", "✓ Confirmed: quote is on the page and proves this"],
+    downgraded: ["st-downgraded", "Lowered to Partly: quote shows only partial support"],
+    cut_quote: ["st-cut", "Rejected: quote not on the page"],
+    cut_verifier: ["st-cut", "Rejected: quote doesn't prove it"],
+    unchecked: ["st-unchecked", "Unchecked: quote is on the page, but the second check didn't assess it"],
+    claimed: ["st-downgraded", "Unverified: passed the quote check, but the second check was unavailable"],
+    unverified: ["st-downgraded", "Unverified: passed the quote check, not independently verified"],
+    none: ["st-none", "Open: nothing on this project's page shows this feature"]
+  };
+  const st = stMap[c.status] || ["st-none", c.status];
+  const href = safeUrl(p.url);
+  $("#dbody").innerHTML = `
+    <div class="k k-first">${esc(f.id)} · feature</div>
+    <h3 id="dtitle" tabindex="-1">${esc(f.name)}</h3><div class="sub">${esc(f.description || "")}</div>
+    <div class="k">Existing project</div>
+    <h3>${esc(p.name)} <span class="badge">${esc(p.source_label)}</span></h3>
+    <div class="sub">${esc(p.one_liner || "")}</div>
+    <div class="k">Check verdict</div>
+    <span class="status ${st[0]}">${esc(st[1])}</span>
+    ${c.claimed ? `<div class="sub">Claimed ${esc(PLAIN_LABEL[c.claimed] || c.claimed)} → final ${esc(PLAIN_LABEL[c.score] || "Open")}</div>` : ""}
+    ${c.quote ? `<div class="k">Quoted evidence</div><blockquote>${esc(c.quote)}</blockquote>` : ""}
+    ${c.reason ? `<div class="k">Why</div><div>${esc(c.reason)}</div>` : ""}
+    ${p.page_source === "snippet" ? `<div class="k">Note</div><div class="sub">Full page couldn't be read; compared using its search preview.</div>` : ""}
+    ${(p.injection_flags || []).length ? `<div class="k">Safety</div><div class="sub">This page contains text that tries to instruct AI tools (“${esc(p.injection_flags[0])}”). It was treated as plain text.</div>` : ""}
+    <div class="k">Source [${esc(p.n)}]</div>
+    <a href="${esc(href)}" target="_blank" rel="noopener noreferrer">Open source: ${esc(p.url)}<span class="sr-only"> (opens in a new tab)</span></a>`;
+  $("#scrim").classList.remove("hidden");
+  $("#drawer").classList.add("open");
+  $("#drawer").setAttribute("aria-hidden", "false");
+  document.body.classList.add("modal-open");
+  const heading = $("#dtitle");
+  if (heading) heading.focus();
+}
+
+function closeDrawer() {
+  const drawer = $("#drawer");
+  if (!drawer.classList.contains("open")) return;
+  drawer.classList.remove("open");
+  drawer.setAttribute("aria-hidden", "true");
+  $("#scrim").classList.add("hidden");
+  document.body.classList.remove("modal-open");
+  if (lastTrigger && typeof lastTrigger.focus === "function") lastTrigger.focus();
+  lastTrigger = null;
+}
+
+$("#close").onclick = closeDrawer;
+$("#scrim").onclick = closeDrawer;
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeDrawer(); });
+
+// Report actions
+$("#copy-link").onclick = async () => {
+  if (!current || !current.id) return;
+  const url = `${window.location.origin}/r/${encodeURIComponent(current.id)}`;
+  try {
+    await navigator.clipboard.writeText(url);
+    showToast("Link copied.");
+  } catch {
+    showToast(`Link: ${url}`);
+  }
+};
+
+$("#edit-idea").onclick = () => {
+  if (!current || !current.idea) return;
+  $("#idea").value = current.idea;
+  pendingPivotOf = null;
+  updateCounter();
+  saveDraft();
+  $("#idea").focus();
+  $("#idea").scrollIntoView({behavior: scrollBehavior()});
+};
+
+$("#delete-report").onclick = async () => {
+  if (!current || !current.id) return;
+  const rid = current.id;
+  try {
+    await api(`/api/reports/${encodeURIComponent(rid)}`, {method: "DELETE"});
+    pastList = pastList.filter(x => x.id !== rid);
+    renderPastSelect();
+    $("#results").classList.add("hidden");
+    current = null;
+    history.pushState({}, "", "/");
+    showToast("Report deleted.", "Undo", async () => {
+      try {
+        await api(`/api/reports/${encodeURIComponent(rid)}/restore`, {method: "POST"});
+        await loadPast();
+        openReportById(rid);
+      } catch (e) {
+        showToast("Couldn't restore report: " + e.message);
+      }
+    });
+  } catch (e) {
+    showToast("Couldn't delete report: " + e.message);
+  }
+};
+
+// Delete my data modal dialog
+const delDialog = $("#delete-dialog");
+$("#open-delete-me").onclick = () => {
+  $("#del-confirm").value = "";
+  $("#del-go").disabled = true;
+  delDialog.showModal();
+  $("#del-confirm").focus();
+};
+$("#del-cancel").onclick = () => delDialog.close();
+$("#del-confirm").addEventListener("input", () => {
+  $("#del-go").disabled = $("#del-confirm").value.trim().toLowerCase() !== "delete";
+});
+$("#del-go").onclick = async () => {
+  try {
+    await api("/api/me", {method: "DELETE"});
+    delDialog.close();
+    pastList = [];
+    renderPastSelect();
+    current = null;
+    $("#results").classList.add("hidden");
+    history.pushState({}, "", "/");
+    showToast("Your data was deleted.");
+  } catch (e) {
+    delDialog.close();
+    showToast("Couldn't delete your data: " + e.message);
+  }
+};
+
+window.addEventListener("popstate", () => {
+  const m = window.location.pathname.match(/^\/r\/([0-9A-Za-z]{10})$/);
+  if (m) openReportById(m[1], {pushUrl: false});
+});
+
+// Boot
+restoreDraft();
+loadStatus();
+loadPast();
+const initialReport = window.location.pathname.match(/^\/r\/([0-9A-Za-z]{10})$/);
+if (initialReport) openReportById(initialReport[1], {pushUrl: false});
+</script>
+</body>
+</html>
